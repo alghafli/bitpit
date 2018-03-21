@@ -50,5 +50,4 @@ args:
 Tutorial
 --------
 
-Check out bitpit tutorial at http://bitpit.readthedocs.io/en/latest/
-
+Check out bitpit tutorial at http://bitpit.readthedocs.io/
