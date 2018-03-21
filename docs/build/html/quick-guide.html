@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Quick Guide &mdash; bitpit 0.0.5 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitpit 0.0.5 documentation" href="index.html" />
+    <link rel="next" title="Download a File" href="download-a-file.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="quick-guide">
+<h1>Quick Guide<a class="headerlink" href="#quick-guide" title="Permalink to this headline">¶</a></h1>
+<p>This is a quick guide to use the library. Read it if you want to have a quick
+look in the library and do not want to spend much time here.</p>
+<p>bitpit is an event driven http download library with automatic resume and other
+features. The library is written in an event-driven style similar to GTK+.</p>
+<div class="section" id="usage-example">
+<h2>Usage example<a class="headerlink" href="#usage-example" title="Permalink to this headline">¶</a></h2>
+<p>This is a typical usage example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bitpit</span>
+
+<span class="c1">#will download this</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://www.python.org/static/img/python-logo.png&#39;</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">bitpit</span><span class="o">.</span><span class="n">Downloader</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="c1">#downloader instance</span>
+
+<span class="c1">#listen to download events and call a function whenever an event happens</span>
+<span class="c1">#print state when state changes</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;state-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;download state:&#39;</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">state</span><span class="p">))</span>
+
+<span class="c1">#print speed in human readable format whenever speed changes</span>
+<span class="c1">#speed is updated and callback is called every 1 second by default</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;download speed:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">var</span><span class="o">.</span><span class="n">human_speed</span><span class="p">))</span>
+
+<span class="c1">#register another callback function to the speed change signal</span>
+<span class="c1">#print percentage downloaded whenever speed changes</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">percentage</span><span class="p">),</span> <span class="s1">&#39;%&#39;</span><span class="p">))</span>
+
+<span class="c1">#print total file size in human readable format when the downloader knows the file size</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;size-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;total file size:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">var</span><span class="o">.</span><span class="n">human_size</span><span class="p">))</span>
+
+<span class="c1">#done registering callbacks. lets start our download</span>
+<span class="c1">#the following call will not block. it will start a new download thread</span>
+<span class="n">d</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="c1">#do some other work while download is taking place...</span>
+
+<span class="c1">#wait for download completion or error</span>
+<span class="n">d</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="as-main-script">
+<h2>As main script<a class="headerlink" href="#as-main-script" title="Permalink to this headline">¶</a></h2>
+<p>This module can also be run as a main python script to download a file. You can have a look at the main function for another usage example.</p>
+<p>commandline syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>python -m bitpit.py &lt;url&gt;
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>args:</dt>
+<dd>url: the url to download.</dd>
+</dl>
+</div>
+<div class="section" id="other-arguments">
+<h2>Other arguments<a class="headerlink" href="#other-arguments" title="Permalink to this headline">¶</a></h2>
+<p>Most of what you can do is done by passing the desired args to
+<cite>Downloader.__init__()</cite>. Here are most of the args you can use:</p>
+<ol class="arabic">
+<li><p class="first">url: URL to download</p>
+</li>
+<li><dl class="first docutils">
+<dt>path: The path to download the file at. if not supplied, will guess the file</dt>
+<dd><p class="first last">name from the URL.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>restart_wait: Time to wait in case of error before the download is retried.</dt>
+<dd><p class="first last">If not supplied, will never retry in case of error.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>update_period: The minimum time to wait before emitting <em>speed-changed</em></dt>
+<dd><p class="first last">signal. Defaults to 1 second.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">timeout: Connection timeout. Defaults to 10 seconds.</p>
+</li>
+<li><dl class="first docutils">
+<dt>rate_limit: Maximum download bit rate. If not supplied, download without</dt>
+<dd><p class="first last">speed limit.</p>
+</dd>
+</dl>
+</li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Quick Guide</a><ul>
+<li><a class="reference internal" href="#usage-example">Usage example</a></li>
+<li><a class="reference internal" href="#as-main-script">As main script</a></li>
+<li><a class="reference internal" href="#other-arguments">Other arguments</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="download-a-file.html" title="next chapter">Download a File</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/quick-guide.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Mohammad Alghafli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/quick-guide.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

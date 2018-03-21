@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Automatic Restart &mdash; bitpit 0.0.5 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitpit 0.0.5 documentation" href="index.html" />
+    <link rel="prev" title="Display Download Information" href="display-info.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="automatic-restart">
+<h1>Automatic Restart<a class="headerlink" href="#automatic-restart" title="Permalink to this headline">¶</a></h1>
+<p>So far, our program freezes until the download stops. However, when the program
+ends we are not sure whether the file is stopped because it is completely
+downloaded or because an error occured. What if an error occured and we want to
+restart the download again? This is easy. We just pass <code class="docutils literal"><span class="pre">restart_wait</span></code> argument
+to <cite>Downloader.__init__()</cite>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">dl</span> <span class="o">=</span> <span class="n">bitpit</span><span class="o">.</span><span class="n">Downloader</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">restart_wait</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This argument decides the time to wait before the downloader retries downloading
+when an error occures. It defaults to -1 if not given which means do not restart
+even after an error. Because we gave it the value 30 here, anytime an error
+happens, the downloader will wait for 30 seconds and then retry again. Try to
+download <a class="reference external" href="http://mirrors.evowise.com/linuxmint/stable/18.3/linuxmint-18.3-cinnamon-64bit.iso">linux mint</a> and shutdown your internet connection. Here
+is the output I got:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>The file size is 1899528192
+The speed is 0 B/s
+The state changed to: start
+The speed is 207.0622560278128 KB/s
+The speed is 474.6406851817469 KB/s
+The speed is 0 B/s
+The state changed to: error
+The file size is 1899528192
+The speed is 0 B/s
+The state changed to: start
+The speed is 506.2438224533826 KB/s
+The speed is 594.6743846283302 KB/s
+</pre></div>
+</div>
+<p>You can see the state has changed to <code class="docutils literal"><span class="pre">error</span></code> after I shutdown my internet but
+the program did not terminate. After 30 seconds, the state changed again to
+<code class="docutils literal"><span class="pre">start</span></code> and the download continued. Now our program will only terminate when
+the download is successfully completed.</p>
+<p>One last note, some connection errors are perminant. For instance, if you get a
+404 NOT FOUND error, then no matter how many times you try, the error will keep
+happening. bitpit does not handle that and will keep trying to download
+regardless of the error. You can check the error that happened by looking at the
+<cite>Downloader.last_exception</cite> property. You will most probably get an exception
+from <cite>requests.exceptions</cite> module.</p>
+<p>We have only changed 1 line in this lesson. Now our program so far has become:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bitpit</span>
+
+<span class="k">def</span> <span class="nf">on_size_changed</span><span class="p">(</span><span class="n">downloader</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;The file size is&#39;</span><span class="p">,</span> <span class="n">downloader</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">on_speed_changed</span><span class="p">(</span><span class="n">downloader</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;The speed is&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_speed</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">on_state_changed</span><span class="p">(</span><span class="n">downloader</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;The state changed to:&#39;</span><span class="p">,</span> <span class="n">downloader</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+
+<span class="c1">#will download this</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://www.python.org/static/img/python-logo.png&#39;</span>
+
+<span class="c1">#this is our downloader</span>
+<span class="n">dl</span> <span class="o">=</span> <span class="n">bitpit</span><span class="o">.</span><span class="n">Downloader</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">restart_wait</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="c1">#listen to signals</span>
+<span class="c1">#print size as soon as it is known</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;size-changed&#39;</span><span class="p">,</span> <span class="n">on_size_changed</span><span class="p">)</span>
+
+<span class="c1">#print speed periodically</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span> <span class="n">on_speed_changed</span><span class="p">)</span>
+
+<span class="c1">#print state</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;state-changed&#39;</span><span class="p">,</span> <span class="n">on_state_changed</span><span class="p">)</span>
+
+<span class="c1">#start downloading and tell user download has started.</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Download has started.&#39;</span><span class="p">)</span>
+
+<span class="c1">#end of the main thread</span>
+</pre></div>
+</div>
+<p>We are getting closer to the end. Next, we will specify the path and name to
+save our file instead of saving it in the current directory with the default
+name. We will also start limiting the download speed instead of eating up all
+our connection bandwidth before my brother gets angry.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="display-info.html" title="previous chapter">Display Download Information</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/auto-restart.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Mohammad Alghafli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/auto-restart.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
