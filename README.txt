@@ -46,3 +46,9 @@ commandline syntax::
 args:
     url: the url to download.
 
+--------
+Tutorial
+--------
+
+Check out bitpit tutorial at http://bitpit.readthedocs.io/en/latest/
+

@@ -2,7 +2,7 @@ Metadata-Version: 1.1
 Name: bitpit
 Version: 0.0.6
 Summary: event driven http download library with automatic resume and other features.
-Home-page: UNKNOWN
+Home-page: https://github.com/alghafli/bitpit
 Author: Mohammad Alghafli
 Author-email: thebsom@gmail.com
 License: UNKNOWN
@@ -53,6 +53,12 @@ Description: Event driven http download library with automatic resume and other 
             
         args:
             url: the url to download.
+        
+        --------
+        Tutorial
+        --------
+        
+        Check out bitpit tutorial at http://bitpit.readthedocs.io/en/latest/
         
         
 Keywords: download manager
