@@ -1,0 +1,319 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Elegant Output &mdash; bitpit 0.0.5 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitpit 0.0.5 documentation" href="index.html" />
+    <link rel="prev" title="Additional Tuning" href="additional-tuning.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="elegant-output">
+<h1>Elegant Output<a class="headerlink" href="#elegant-output" title="Permalink to this headline">¶</a></h1>
+<p>We are finally in the last lesson. Let&#8217;s make our output beautiful.</p>
+<p>Our goal will be to make the output look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&lt;state&gt; | &lt;File size&gt; | &lt;Downloaded&gt; | &lt;speed&gt; [&lt;progress bar&gt;] &lt;percentage&gt;% &lt;eta&gt;
+</pre></div>
+</div>
+<p>We have all the information in 1 line seperated by a pipe character &#8220;|&#8221;. The
+state will show us in real time if there is any error. The file size, downloaded
+bytes and speed will be in human readable form so that we can easily read it.
+The progress bar will indicate how much portion we have downloaded so far. The
+percentage will indicate the same as the progress bar but in numbers. Finally,
+<code class="docutils literal"><span class="pre">eta</span></code> is the estimated time to finish the download. The information will be
+printed in only 1 line. If it changes, we will make the information be updated
+in the same line instead of printing so many lines like we did in the
+<code class="docutils literal"><span class="pre">on_speed_changed</span></code> callback.</p>
+<div class="section" id="showing-information-in-one-line">
+<h2>Showing information in one line<a class="headerlink" href="#showing-information-in-one-line" title="Permalink to this headline">¶</a></h2>
+<p>First, instead of having a callback function for each signal, let&#8217;s make 1
+callback that will update all the information whenever 1 thing changes. Let&#8217;s
+remove <code class="docutils literal"><span class="pre">on_size_changed</span></code>, <code class="docutils literal"><span class="pre">on_speed_changed</span></code> and <code class="docutils literal"><span class="pre">on_state_changed</span></code>
+callbacks and write 1 callback to print the <code class="docutils literal"><span class="pre">state</span></code>, <code class="docutils literal"><span class="pre">size</span></code>, <code class="docutils literal"><span class="pre">downloaded</span></code>,
+and <code class="docutils literal"><span class="pre">speed</span></code> instead:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">on_anything_changed</span><span class="p">(</span><span class="n">downloader</span><span class="p">):</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="s1">&#39;{} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_size</span><span class="p">)</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="s1">&#39;{} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_downloaded</span><span class="p">)</span>
+    <span class="n">speed</span> <span class="o">=</span> <span class="s1">&#39;{} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_speed</span><span class="p">)</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;{} | {} | {} | {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">downloaded</span><span class="p">,</span> <span class="n">speed</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We will do the progress bar, the percentage and the estimated download time in a
+later section.</p>
+<p>Next, we modify all <cite>Downloader.listen()</cite> calls to register the new function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#listen to everything</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;size-changed&#39;</span><span class="p">,</span> <span class="n">on_anything_changed</span><span class="p">)</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span> <span class="n">on_anything_changed</span><span class="p">)</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;state-changed&#39;</span><span class="p">,</span> <span class="n">on_anything_changed</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now our callback will be called when the state changes, when we know the
+size and periodically when <code class="docutils literal"><span class="pre">speed-change</span></code> signal is emitted. Notice that we
+also printed number of bytes <code class="docutils literal"><span class="pre">downloaded</span></code> which we did not do in previous
+lessons. Now our output will be something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>pause | 9.865234375 KB | 0 B | 0 B/s
+start | 9.865234375 KB | 0 B | 0 B/s
+start | 9.865234375 KB | 0 B | 0 B/s
+start | 9.865234375 KB | 2.0 KB | 1.9990254031527928 KB/s
+start | 9.865234375 KB | 4.0 KB | 1.9989961600987338 KB/s
+start | 9.865234375 KB | 6.0 KB | 1.9988544205541783 KB/s
+start | 9.865234375 KB | 8.0 KB | 1.9987502773920875 KB/s
+start | 9.865234375 KB | 9.865234375 KB | 1.9987502773920875 KB/s
+complete | 9.865234375 KB | 9.865234375 KB | 0 B/s
+complete | 9.865234375 KB | 9.865234375 KB | 0 B/s
+</pre></div>
+</div>
+<p>Ok. We still have ugly output. First, let&#8217;s make all numbers rounded to 2
+decimal places. In the callback, we will modify our <code class="docutils literal"><span class="pre">format</span> <span class="pre">strings</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">state</span>
+<span class="n">size</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_size</span><span class="p">)</span>
+<span class="n">downloaded</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_downloaded</span><span class="p">)</span>
+<span class="n">speed</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_speed</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Second, we do not want to print multiple lines. We want to print only 1 line.
+Let&#8217;s use the <code class="docutils literal"><span class="pre">print</span></code> function arguments to stay on the same line and use the
+character <code class="docutils literal"><span class="pre">\r</span></code> to update it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\r</span><span class="s1">{} | {} | {} | {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">downloaded</span><span class="p">,</span> <span class="n">speed</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now our callback will not print many lines. Instead, it will go back to the
+beginning of the line and print the information on the same line erasing
+anything previously shown.</p>
+<p>Furthermore, let&#8217;s modify the <code class="docutils literal"><span class="pre">print</span></code> call to print spaces to fill all the
+line with 79 characters just to erase the whole line in case we have garbage out
+of our text width:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">79</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Our callback now becomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">on_anything_changed</span><span class="p">(</span><span class="n">downloader</span><span class="p">):</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_size</span><span class="p">)</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_downloaded</span><span class="p">)</span>
+    <span class="n">speed</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_speed</span><span class="p">)</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\r</span><span class="s1">{} | {} | {} | {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">downloaded</span><span class="p">,</span> <span class="n">speed</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">79</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="showing-the-progress-bar-percentage-and-eta">
+<h2>Showing the progress bar, percentage and ETA<a class="headerlink" href="#showing-the-progress-bar-percentage-and-eta" title="Permalink to this headline">¶</a></h2>
+<p>Let&#8217;s start with the progress bar. We use <cite>Downlaoder.bar()</cite> function to
+generate a progress bar. The function takes 2 optional arguments. The first is
+<code class="docutils literal"><span class="pre">width</span></code> which is the length in characters of the progress bar. It defaults to
+30. Let&#8217;s make it 10. The second is <code class="docutils literal"><span class="pre">char</span></code> which is the character to
+use to fill the bar. It defaults to &#8216;=&#8217;. Let&#8217;s make this a dash instead:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">bar</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">char</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Our callback now becomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">on_anything_changed</span><span class="p">(</span><span class="n">downloader</span><span class="p">):</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_size</span><span class="p">)</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_downloaded</span><span class="p">)</span>
+    <span class="n">speed</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_speed</span><span class="p">)</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">char</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\r</span><span class="s1">{} | {} | {} | {} [{}]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">state</span><span class="p">,</span>
+            <span class="n">size</span><span class="p">,</span>
+            <span class="n">downloaded</span><span class="p">,</span>
+            <span class="n">speed</span><span class="p">,</span>
+            <span class="n">bar</span>
+        <span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">79</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Notice how we enclosed the progress bar in brackes within our format string.</p>
+<p>Percentage and ETA are straight forward. We use <cite>Downloader.percentage</cite> and
+<cite>Downloader.eta</cite> properties of the downloader:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">percentage</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">downloader</span><span class="o">.</span><span class="n">percentage</span><span class="p">)</span>
+<span class="n">eta</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">eta</span>
+</pre></div>
+</div>
+<p><cite>Downloader.percentage</cite> property returns the percentage (from 0 to 100) as a
+<code class="docutils literal"><span class="pre">float</span></code>. we converted it to <code class="docutils literal"><span class="pre">int</span></code> to remove any digits after the decimal
+point to reduce user confusion. eta returns a <code class="docutils literal"><span class="pre">datetime.timedelta</span></code> instance
+which tells us the estimated time remaining until the download is completed.</p>
+<p>Now our full callback function becomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">on_anything_changed</span><span class="p">(</span><span class="n">downloader</span><span class="p">):</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_size</span><span class="p">)</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_downloaded</span><span class="p">)</span>
+    <span class="n">speed</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_speed</span><span class="p">)</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">char</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+    <span class="n">percentage</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">downloader</span><span class="o">.</span><span class="n">percentage</span><span class="p">)</span>
+    <span class="n">eta</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">eta</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\r</span><span class="s1">{} | {} | {} | {} [{}] {}% {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">state</span><span class="p">,</span>
+            <span class="n">size</span><span class="p">,</span>
+            <span class="n">downloaded</span><span class="p">,</span>
+            <span class="n">speed</span><span class="p">,</span>
+            <span class="n">bar</span><span class="p">,</span>
+            <span class="n">percentage</span><span class="p">,</span>
+            <span class="n">eta</span>
+        <span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">79</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And now, this is our awesome program:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bitpit</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+
+<span class="k">def</span> <span class="nf">on_anything_changed</span><span class="p">(</span><span class="n">downloader</span><span class="p">):</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_size</span><span class="p">)</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_downloaded</span><span class="p">)</span>
+    <span class="n">speed</span> <span class="o">=</span> <span class="s1">&#39;{:0.2f} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">downloader</span><span class="o">.</span><span class="n">human_speed</span><span class="p">)</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">char</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+    <span class="n">percentage</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">downloader</span><span class="o">.</span><span class="n">percentage</span><span class="p">)</span>
+    <span class="n">eta</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">eta</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\r</span><span class="s1">{} | {} | {} | {} [{}] {}% {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">state</span><span class="p">,</span>
+            <span class="n">size</span><span class="p">,</span>
+            <span class="n">downloaded</span><span class="p">,</span>
+            <span class="n">speed</span><span class="p">,</span>
+            <span class="n">bar</span><span class="p">,</span>
+            <span class="n">percentage</span><span class="p">,</span>
+            <span class="n">eta</span>
+        <span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">79</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1">#will download this</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://www.python.org/static/img/python-logo.png&#39;</span>
+
+<span class="c1">#this is our downloader</span>
+<span class="n">dl</span> <span class="o">=</span> <span class="n">bitpit</span><span class="o">.</span><span class="n">Downloader</span><span class="p">(</span>
+        <span class="n">url</span><span class="p">,</span>
+        <span class="n">path</span><span class="o">=</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;Desktop&#39;</span> <span class="o">/</span> <span class="s1">&#39;logo.png&#39;</span><span class="p">,</span>
+        <span class="n">restart_wait</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">rate_limit</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="mi">1024</span>
+    <span class="p">)</span>
+
+<span class="c1">#listen to everything</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;size-changed&#39;</span><span class="p">,</span> <span class="n">on_anything_changed</span><span class="p">)</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span> <span class="n">on_anything_changed</span><span class="p">)</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;state-changed&#39;</span><span class="p">,</span> <span class="n">on_anything_changed</span><span class="p">)</span>
+
+<span class="c1">#start downloading and tell user download has started.</span>
+<span class="n">dl</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Download has started.&#39;</span><span class="p">)</span>
+
+<span class="c1">#end of the main thread</span>
+</pre></div>
+</div>
+<p>The output I got from this program is below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>start | 9.87 KB | 4.00 KB | 2.00 KB/s [----      ] 40% 0:00:02.934069
+</pre></div>
+</div>
+<p>You can see that fractions of a second are shown in <code class="docutils literal"><span class="pre">eta</span></code> which is not very
+nice. However, I will leave this to you to fix.</p>
+<p>Finally we have an awesome download program. Of course, there are many things
+we can improve on it. But I believe this form is enough to explain bitpit
+features and how to use it.</p>
+<p>THE END...</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Elegant Output</a><ul>
+<li><a class="reference internal" href="#showing-information-in-one-line">Showing information in one line</a></li>
+<li><a class="reference internal" href="#showing-the-progress-bar-percentage-and-eta">Showing the progress bar, percentage and ETA</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="additional-tuning.html" title="previous chapter">Additional Tuning</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/elegant-output.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Mohammad Alghafli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/elegant-output.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

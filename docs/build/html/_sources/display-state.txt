@@ -1,0 +1,153 @@
+=============
+Display State
+=============
+
+At the moment we are able to download a file. But we have no information on how
+fast our download is and if it is completed or there is some error.
+
+Before we start, here is the tiny program we made previously if you need to
+refresh your mind::
+
+    import bitpit
+    
+    #will download this
+    url = 'https://www.python.org/static/img/python-logo.png'
+    
+    #this is our downloader
+    dl = bitpit.Downloader(url)
+    
+    #start downloading and tell user download has started.
+    dl.start()
+    print('Download has started.')
+    
+    #end of the main thread
+
+Now it is time to make it better.
+
+---------------------
+Display the file size
+---------------------
+
+If we are downloading a file, we probably want to know the file size.
+bitpit is written in an event driven style. It is a little similar to GTK
+library if you have used it before.
+We need to do 2 steps to show the file size. First, we need to define a function
+that will be called when the file size is known::
+
+    def on_size_changed(downloader):
+        print(downloader.size)
+
+This function takes 1 argument: ``downloader`` which is the ``Downloader``
+instance that we just knew its file size. In the function, we print the
+``Downloader.size`` property, which is just the file size in bytes.
+
+Next, we need to tell the downloader to call this function as soon as it knows
+the file size. You probably want to do this just before you start the download.
+This is done using ``Downloader.listen()`` method::
+
+    dl.listen('size-changed', on_size_changed)
+
+The ``Downloader.listen()`` takes 2 arguments. The first is the signal to listen
+to. Here we listened to the ``size-changed`` signal which is emitted whenever
+the downloader gets to know the size of the file being downloaded. The second
+argument is the function to call when the signal is emitted. Here we put the
+function we defined above.
+
+After this call to ``Downloader.listen()``, our function will be called as soon
+as the file size is known. Our full program now becomes as follows::
+
+    import bitpit
+    
+    def on_size_changed(downloader):
+        print('The file size is', downloader.size)
+    
+    #will download this
+    url = 'https://www.python.org/static/img/python-logo.png'
+    
+    #this is our downloader
+    dl = bitpit.Downloader(url)
+    
+    #listen to signals
+    #print size as soon as it is known
+    dl.listen('size-changed', on_size_changed)
+    
+    #start downloading and tell user download has started.
+    dl.start()
+    print('Download has started.')
+    
+    #end of the main thread
+
+If you notice, the size is expressed in bytes. Showing the size in bytes gives
+us a very big number that is difficult for humans to read. It would be easier
+for us if we could display the size in Kilobytes or Megabytes. This can be done
+by modifying the callback function ``on_size_changed()`` to be as follows::
+
+    def on_size_changed(downloader):
+        print('The file size is', *downloader.human_size)
+
+We just replaced ``Downloader.size`` property with ``Downloader.human_size``
+property. ``Downloader.human_size`` property gives us a 2-element tuple. The
+first element is a float representing the size and the second element is a
+string suffix with the value KB for kilobytes or MB for megabytes and so on.
+In our call to ``print()`` function, we unpacked the tuple arguments using
+python *-operator. If you are not familiar with this, check it out in the python
+`here <https://docs.python.org/3/tutorial/
+controlflow.html#unpacking-argument-lists>`_.
+
+When I tried the new callback function, I got the following message printed::
+
+    The file size is 9.865234375 KB
+
+We can use python string formatting to make it look better but we will leave it
+for later.
+
+.. ===============================================
+
+First, we need to import the library::
+
+    import bitpit
+
+Now let's specify the URL we are going to download. We are going to download
+python logo::
+
+    url = 'https://www.python.org/static/img/python-logo.png'
+
+Next comes bitpit business. We create a `Downloader` instance::
+
+    dl = bitpit.Downloader(url)
+
+Finally we start the download::
+
+    dl.start()
+    print('Download has started.')
+
+Now the download will start. Notice that `Downloader.start()` call will not
+block. The message ``Download has started.`` will be printed immediately before
+the download finishes. Then our main thread will end but the downloading thread
+will keep running until the file is fully downloaded or an error occures.
+
+If you try the example above, you will see ``Download has started`` message
+printed on the screen and nothing else. The program will freeze until the
+download finishes. Imagine if we have a very big file such as `linux mint
+<http://mirrors.evowise.com/linuxmint/stable/18.3/
+linuxmint-18.3-cinnamon-64bit.iso>`_. It will take a long time without us knowing
+how much we have downloaded. That is not so convenient isn't it? We will look at
+that later but for now, let's look at the program we have written so far::
+
+    import bitpit
+    
+    #will download this
+    url = 'https://www.python.org/static/img/python-logo.png'
+    
+    #this is our downloader
+    dl = bitpit.Downloader(url)
+    
+    #start downloading and tell user download has started.
+    dl.start()
+    print('Download has started.')
+    
+    #end of the main thread
+
+Next, we will make the program give us information about the download such as
+whether it has started or faced an error and also the download speed.
+

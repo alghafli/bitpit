@@ -1,0 +1,4 @@
+include docs/build/html/*.html
+include docs/source/*.rst
+include example/*
+
