@@ -22,18 +22,27 @@ This is a typical usage example::
     
     #listen to download events and call a function whenever an event happens
     #print state when state changes
-    d.listen('state-changed', lambda var: print('download state:', var.state))
+    d.listen(
+            'state-changed',
+            lambda var, old_state: print('download state:', var.state)
+        )
     
     #print speed in human readable format whenever speed changes
     #speed is updated and callback is called every 1 second by default
-    d.listen('speed-changed', lambda var: print('download speed:', *var.human_speed))
+    d.listen(
+            'speed-changed',
+            lambda var: print('download speed:', *var.human_speed)
+        )
     
     #register another callback function to the speed change signal
     #print percentage downloaded whenever speed changes
     d.listen('speed-changed', lambda var: print(int(var.percentage), '%'))
     
     #print total file size in human readable format when the downloader knows the file size
-    d.listen('size-changed', lambda var: print('total file size:', *var.human_size))
+    d.listen(
+            'size-changed',
+            lambda var: print('total file size:', *var.human_size)
+        )
     
     #done registering callbacks. lets start our download
     #the following call will not block. it will start a new download thread
@@ -56,14 +65,15 @@ commandline syntax::
     python -m bitpit.py <url>
     
 args:
-    url: the url to download.
+
+    * url: the url to download.
 
 ---------------
 Other arguments
 ---------------
 
 Most of what you can do is done by passing the desired args to
-`Downloader.__init__()`. Here are most of the args you can use:
+``Downloader.__init__()``. Here are most of the args you can use:
 
 #. url: URL to download
 #. path: The path to download the file at. if not supplied, will guess the file
@@ -75,4 +85,9 @@ Most of what you can do is done by passing the desired args to
 #. timeout: Connection timeout. Defaults to 10 seconds.
 #. rate_limit: Maximum download bit rate. If not supplied, download without
                speed limit.
+
+--------
+Tutorial
+--------
+In :doc:`download-a-file` you will find a more comprehensive bitpit tutorial.
 

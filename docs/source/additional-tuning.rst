@@ -2,15 +2,15 @@
 Additional Tuning
 =================
 
-Now we have most of our work done. We are going to look into a few additional
-things we can do to modify our downloader behaviour.
+Now we have most of our work done. We are going to look into a few minor
+additional things we can do to modify our downloader behaviour.
 
 ------------------
 Connection Timeout
 ------------------
 
 We can change the connection timeout settings by giving the ``timeout`` argument
-to `Downloader.__init__()`. The default value is 10 seconds. That is relatively
+to ``Downloader.__init__()``. The default value is 10 seconds. That is relatively
 small. Let's make it 1 minute::
 
     dl = bitpit.Downloader(
@@ -25,12 +25,12 @@ small. Let's make it 1 minute::
 Chunk Size
 ----------
 
-We can also supply the download ``chunk_size`` to `Downloader.__init__()`. The chunk
-size is the maximum number of bytes to download in a single network read
-operation. You do not really need to change this at all but just in case you
-want to change it. Having very low or very high values can make the download
-slow. There is no hard rule to figure out the best other than trying. In my
-computer, the default value worked best. The default value is 128 KB. For
+We can also supply the download ``chunk_size`` to ``Downloader.__init__()``.
+The chunk size is the maximum number of bytes to download in a single network
+read operation. You do not really need to change this at all but just in case
+you want to change it. Having very low or very high values may slightly affect
+download speed. There is no hard rule to figure out the best other than trying.
+In my computer, the default value worked best. The default value is 4 KB. For
 practice, let's change it to 1 KB::
 
     dl = bitpit.Downloader(
@@ -56,7 +56,7 @@ Here is our program so far::
     def on_speed_changed(downloader):
         print('The speed is', *downloader.human_speed)
     
-    def on_state_changed(downloader):
+    def on_state_changed(downloader, old_state):
         print('The state changed to:', downloader.state)
     
     #will download this
@@ -89,6 +89,7 @@ Here is our program so far::
     #end of the main thread
 
 Now we have only one thing left to do. If you have noticed, our output is ugly.
-In the next lesson we are going to make it pretty. We will also introduce some
+
+In :doc:`elegant-output` we are going to make it pretty. We will also introduce some
 useful things in `bitpit`.
 

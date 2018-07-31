@@ -1,15 +1,21 @@
+:Date: 2018-07-31
+:Version: 1.0.0
+:Authors:
+    * Mohammad Alghafli <thebsom@gmail.com>
+
 Event driven http download library with automatic resume and other features.
 The goal of this module is to ease the process of downloading files and resuming
-interrupted downloads. the library is written in an event-driven style. the
-module defines the download manager class `Downloader`. instances of this class
+interrupted downloads. The library is written in an event-driven style similar
+to GTK. The module defines the class ``Downloader``. Instances of this class
 download a file from an http server and call callback functions whenever an
-event happens ralated to this download. examples of events are download state
-change (start, pause, complete, error) and download speed change. the following
+event happens ralated to this download. Examples of events are download state
+change (start, pause, complete, error) and download speed change. The following
 is a typical usage example::
     
     import bitpit
     
-    url = 'https://www.python.org/static/img/python-logo.png'    #will download this
+    #will download this
+    url = 'https://www.python.org/static/img/python-logo.png'
     d = bitpit.Downloader(url) #downloader instance
     
     #listen to download events and call a function whenever an event happens
@@ -28,15 +34,15 @@ is a typical usage example::
     d.listen('size-changed', lambda var: print('total file size:', *var.human_size))
     
     #done registering callbacks. lets start our download
-    #the following call will not block
+    #the following call will not block. it will start a new download thread
     d.start()
     
-    #do some other work...
+    #do some other work while download is taking place...
     
-    #wait for download completion or error if you want
+    #wait for download completion or error
     d.join()
 
-this module can also be run as a main python script to download a file. you can
+This module can also be run as a main python script to download a file. You can
 have a look at the main function for another usage example.
 
 commandline syntax::
@@ -44,10 +50,11 @@ commandline syntax::
     python -m bitpit.py <url>
     
 args:
-    url: the url to download.
+    * url: the url to download.
 
 --------
 Tutorial
 --------
 
 Check out bitpit tutorial at http://bitpit.readthedocs.io/
+

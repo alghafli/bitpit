@@ -28,7 +28,7 @@ remove ``on_size_changed``, ``on_speed_changed`` and ``on_state_changed``
 callbacks and write 1 callback to print the ``state``, ``size``, ``downloaded``,
 and ``speed`` instead::
 
-    def on_anything_changed(downloader):
+    def on_anything_changed(downloader, old_state=None):
         state = downloader.state
         size = '{} {}'.format(*downloader.human_size)
         downloaded = '{} {}'.format(*downloader.human_downloaded)
@@ -40,7 +40,7 @@ and ``speed`` instead::
 We will do the progress bar, the percentage and the estimated download time in a
 later section.
 
-Next, we modify all `Downloader.listen()` calls to register the new function::
+Next, we modify all ``Downloader.listen()`` calls to register the new function::
 
     #listen to everything
     dl.listen('size-changed', on_anything_changed)
@@ -90,7 +90,7 @@ of our text width::
 
 Our callback now becomes::
 
-    def on_anything_changed(downloader):
+    def on_anything_changed(downloader, old_state=None):
         state = downloader.state
         size = '{:0.2f} {}'.format(*downloader.human_size)
         downloaded = '{:0.2f} {}'.format(*downloader.human_downloaded)
@@ -103,7 +103,7 @@ Our callback now becomes::
 Showing the progress bar, percentage and ETA
 --------------------------------------------
 
-Let's start with the progress bar. We use `Downlaoder.bar()` function to
+Let's start with the progress bar. We use ``Downlaoder.bar()`` function to
 generate a progress bar. The function takes 2 optional arguments. The first is
 ``width`` which is the length in characters of the progress bar. It defaults to
 30. Let's make it 10. The second is ``char`` which is the character to
@@ -113,7 +113,7 @@ use to fill the bar. It defaults to '='. Let's make this a dash instead::
 
 Our callback now becomes::
 
-    def on_anything_changed(downloader):
+    def on_anything_changed(downloader, old_state=None):
         state = downloader.state
         size = '{:0.2f} {}'.format(*downloader.human_size)
         downloaded = '{:0.2f} {}'.format(*downloader.human_downloaded)
@@ -131,20 +131,20 @@ Our callback now becomes::
 
 Notice how we enclosed the progress bar in brackes within our format string.
 
-Percentage and ETA are straight forward. We use `Downloader.percentage` and
-`Downloader.eta` properties of the downloader::
+Percentage and ETA are straight forward. We use ``Downloader.percentage`` and
+``Downloader.eta`` properties of the downloader::
 
     percentage = int(downloader.percentage)
     eta = downloader.eta
 
-`Downloader.percentage` property returns the percentage (from 0 to 100) as a
+``Downloader.percentage`` property returns the percentage (from 0 to 100) as a
 ``float``. we converted it to ``int`` to remove any digits after the decimal
 point to reduce user confusion. eta returns a ``datetime.timedelta`` instance
 which tells us the estimated time remaining until the download is completed.
 
 Now our full callback function becomes::
 
-    def on_anything_changed(downloader):
+    def on_anything_changed(downloader, old_state=None):
         state = downloader.state
         size = '{:0.2f} {}'.format(*downloader.human_size)
         downloaded = '{:0.2f} {}'.format(*downloader.human_downloaded)
@@ -169,7 +169,7 @@ And now, this is our awesome program::
     import bitpit
     import pathlib
     
-    def on_anything_changed(downloader):
+    def on_anything_changed(downloader, old_state=None):
         state = downloader.state
         size = '{:0.2f} {}'.format(*downloader.human_size)
         downloaded = '{:0.2f} {}'.format(*downloader.human_downloaded)
@@ -223,6 +223,9 @@ nice. However, I will leave this to you to fix.
 Finally we have an awesome download program. Of course, there are many things
 we can improve on it. But I believe this form is enough to explain bitpit
 features and how to use it.
+
+You may want to have a look at :doc:`reference` for complete documentation of
+the library.
 
 THE END...
 

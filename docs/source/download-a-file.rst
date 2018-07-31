@@ -15,7 +15,7 @@ python logo::
 
     url = 'https://www.python.org/static/img/python-logo.png'
 
-Next comes bitpit business. We create a `Downloader` instance::
+Next comes bitpit business. We create a ``Downloader`` instance::
 
     dl = bitpit.Downloader(url)
 
@@ -24,7 +24,7 @@ Finally we start the download::
     dl.start()
     print('Download has started.')
 
-Now the download will start. Notice that `Downloader.start()` call will not
+Now the download will start. Notice that ``Downloader.start()`` call will not
 block. The message ``Download has started.`` will be printed immediately before
 the download finishes. Then our main thread will end but the downloading thread
 will keep running until the file is fully downloaded or an error occures.
@@ -52,6 +52,6 @@ look at that later but for now, let's look at the program we have written so far
     
     #end of the main thread
 
-Next, we will make the program give us information about the download such as
+In :doc:`display-info`, we will make the program give us information about the download such as
 whether it has started or faced an error and also the download speed.
 

@@ -26,7 +26,7 @@ Content
     specify-path-and-rate-limit
     additional-tuning
     elegant-output
-   
+    reference
    
 
 Indices and tables

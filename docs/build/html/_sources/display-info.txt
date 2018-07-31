@@ -37,23 +37,23 @@ that will be called when the file size is known::
     def on_size_changed(downloader):
         print(downloader.size)
 
-This function takes 1 argument: ``downloader`` which is the `Downloader`
+This function takes 1 argument: ``downloader`` which is the ``Downloader``
 instance that we just knew its file size. In the function, we print the
-`Downloader.size` property, which is just the file size in bytes.
+``Downloader.size`` property, which is just the file size in bytes.
 
 Next, we need to tell the downloader to call this function as soon as it knows
 the file size. You probably want to do this just before you start the download.
-This is done using `Downloader.listen()` method::
+This is done using ``Downloader.listen()`` method::
 
     dl.listen('size-changed', on_size_changed)
 
-The `Downloader.listen()` takes 2 arguments. The first is the signal to listen
-to. Here we listened to the ``size-changed`` signal which is emitted whenever
-the downloader gets to know the size of the file being downloaded. The second
-argument is the function to call when the signal is emitted. Here we put the
-function we defined above.
+The ``Downloader.listen()`` takes at least 2 arguments. The first is the signal to
+listen to. Here we listened to the ``size-changed`` signal which is emitted
+whenever the downloader gets to know the size of the file being downloaded. The
+second argument is the function to call when the signal is emitted. Here we put
+the function we defined above.
 
-After this call to `Downloader.listen()`, our function will be called as soon
+After this call to ``Downloader.listen()``, our function will be called as soon
 as the file size is known. Our full program now becomes as follows::
 
     import bitpit
@@ -80,17 +80,17 @@ as the file size is known. Our full program now becomes as follows::
 If you notice, the size is expressed in bytes. Showing the size in bytes gives
 us a very big number that is difficult for humans to read. It would be easier
 for us if we could display the size in Kilobytes or Megabytes. This can be done
-by modifying the callback function `on_size_changed()` to be as follows::
+by modifying the callback function ``on_size_changed()`` to be as follows::
 
     def on_size_changed(downloader):
         print('The file size is', *downloader.human_size)
 
-We just replaced `Downloader.size` property with `Downloader.human_size`
-property. `Downloader.human_size` property gives us a 2-element tuple. The
+We just replaced ``Downloader.size`` property with ``Downloader.human_size``
+property. ``Downloader.human_size`` property gives us a 2-element tuple. The
 first element is a float representing the size and the second element is a
 string suffix with the value KB for kilobytes or MB for megabytes and so on.
-In our call to `print()` function, we unpacked the tuple arguments using
-python *-operator. If you are not familiar with this, check it out in the python
+In our call to ``print()`` function, we unpacked the tuple arguments using
+python * operator. If you are not familiar with this, check it out in the python
 `here <https://docs.python.org/3/tutorial/
 controlflow.html#unpacking-argument-lists>`_.
 
@@ -108,8 +108,8 @@ Display the download speed
 Other than the size, we want to know the download speed. Similar to the size, we
 define a callback function and listen to a signal. The function we will define
 will print the speed just like the size. The property we will use is
-`Downloader.speed`. Also like the size, there is a `Downloader.human_speed`.
-We will use `Downloader.human_speed`::
+``Downloader.speed``. Also like the size, there is a ``Downloader.human_speed``.
+We will use ``Downloader.human_speed``::
 
     def on_speed_changed(downloader):
         print('The speed is', *downloader.human_speed)
@@ -130,7 +130,7 @@ There are other things we can do to improve our program regarding
 ``speed-changed`` signal. For example, we can show how much we have downloaded
 so far in the callback function because we probably have downloaded something
 since the last time the signal was emitted. We can check
-`Downloader.downloaded` and `Downloader.human_downloaded` to know that.
+``Downloader.downloaded`` and ``Downloader.human_downloaded`` to know that.
 Furthermore, our callback will be printing a message every second which makes
 the terminal full of confusing text. We can make our output better. However, we
 will leave it to the end of the tutorial. For now we will stick to what we have
@@ -166,7 +166,7 @@ Now our program has become as follows::
     #end of the main thread
 
 Just as a final note in this section, you can change the time between
-``speed-changed`` signal emissions in `Downloader.__init__()` when you create
+``speed-changed`` signal emissions in ``Downloader.__init__()`` when you create
 the downloader instance by passing the desired number of seconds in the
 ``update_period`` argument. Check the class documentation for more details.
 
@@ -175,26 +175,27 @@ Display the download state
 --------------------------
 
 Another useful information we need in our download is its state. For example,
-did start or not? Is it completed or still in progress? Did it stop normally or
-because of an error? This is what we are going to do.
+did it start or not? Is it completed or still in progress? Did it stop normally
+or because of an error? This is what we are going to do.
 
 Similar to the size and speed, we define a callback function and listen to a
 signal::
 
-    def on_state_changed(downloader):
+    def on_state_changed(downloader, old_state):
         print('The state changed to:', downloader.state)
 
-::
 
     dl.listen('state-changed', on_state_changed)
 
+Notice that ``state-changed`` signal takes at least 2 positional argumetns.
+The ``Downloader`` that changed state and the old state the downloader was on.
 The ``state-changed`` signal is emitted whenever the download is started,
-stopped, or completed. To know the new state, check the `Downloader.state`
+stopped, or completed. To know the new state, check the ``Downloader.state``
 property. It can be one of the following:
-
 * ``pause``: The download is not started or started then stopped by a calling
-             `Downloader.stop()` method.
-* ``start``: The download is running and in progress.
+``Downloader.stop()`` method.
+* ``start``: The download just started but is not download anything yet.
+* ``download``: The download is running and in progress.
 * ``error``: The download stopped bacause of an error.
 * ``complete``: The download completed.
 
@@ -208,7 +209,7 @@ Our program now has become like this::
     def on_speed_changed(downloader):
         print('The speed is', *downloader.human_speed)
     
-    def on_state_changed(downloader):
+    def on_state_changed(downloader, old_state):
         print('The state changed to:', downloader.state)
     
     #will download this
@@ -233,6 +234,6 @@ Our program now has become like this::
     
     #end of the main thread
 
-Next we will make our downloader automatically resume the download when the
+In :doc:`auto-restart`, we will make our downloader automatically resume the download when the
 download is interrupted due to an error.
 

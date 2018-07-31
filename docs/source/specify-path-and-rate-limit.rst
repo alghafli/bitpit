@@ -13,7 +13,7 @@ Specify the file path
 ---------------------
 
 We want to decide where our file will be saved. This is done using the ``path``
-argument to `Downloader.__init__()`::
+argument to ``Downloader.__init__()``::
 
     dl = Downloader(url, path='~/Desktop/logo.png', restart_wait=30)
 
@@ -21,7 +21,7 @@ The above instruction tells the downloader to save the file in my desktop with
 the name ``logo.png``. In case you do not know what ``~`` means in a path, it
 means the user home directory in linux systems. This will probably not work on
 windows. We can make a portable way that works in both linux and windows by
-importing and using `pathlib` standard python library::
+importing and using ``pathlib`` standard python library::
     
     dl = Downloader(
             url,
@@ -29,13 +29,13 @@ importing and using `pathlib` standard python library::
             restart_wait=30
         )
 
-If you are not familiar with `pathlib`, then you should have a look at this
+If you are not familiar with ``pathlib``, then you should have a look at this
 awsome library.
 
 You notice that in our first modification above, we supplied a python string in
 the ``path`` argument. However, in our second modification, we gave a
-`pathlib.Path` object. The argument ``path`` can take both. In fact, you can
-give anything that `pathlib.Path.__ini__()` supports. If you want, you can also
+``pathlib.Path`` object. The argument ``path`` can take both. In fact, you can
+give anything that ``pathlib.Path.__ini__()`` supports. If you want, you can also
 give a binary file-like object and the data will be saved in it.
 
 -------------------
@@ -43,7 +43,7 @@ Download rate limit
 -------------------
 
 To limit the download rate, you simply give ``rate_limit`` argument to
-`Downloader.__init__()`::
+``Downloader.__init__()``::
 
     dl = Downloader(
             url,
@@ -80,7 +80,7 @@ Our full program so far became::
     def on_speed_changed(downloader):
         print('The speed is', *downloader.human_speed)
     
-    def on_state_changed(downloader):
+    def on_state_changed(downloader, old_state):
         print('The state changed to:', downloader.state)
     
     #will download this
@@ -110,5 +110,5 @@ Our full program so far became::
     
     #end of the main thread
 
-Next, we will do our final tunes to our downloader.
+In :doc:`additional-tuning`, we will do our final tunes to our downloader.
 
