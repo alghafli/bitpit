@@ -1,0 +1,841 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bitpit Reference &mdash; bitpit 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitpit 1.0.0 documentation" href="index.html" />
+    <link rel="prev" title="Elegant Output" href="elegant-output.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-bitpit">
+<span id="bitpit-reference"></span><h1>bitpit Reference<a class="headerlink" href="#module-bitpit" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body"><p class="first">2018-07-31</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.0.0</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Authors:</th><td class="field-body"><ul class="first last simple">
+<li>Mohammad Alghafli &lt;<a class="reference external" href="mailto:thebsom&#37;&#52;&#48;gmail&#46;com">thebsom<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Event driven http download library with automatic resume and other features.
+The goal of this module is to ease the process of downloading files and resuming
+interrupted downloads. The library is written in an event-driven style similar
+to GTK. The module defines the class <code class="docutils literal"><span class="pre">Downloader</span></code>. Instances of this class
+download a file from an http server and call callback functions whenever an
+event happens ralated to this download. Examples of events are download state
+change (start, pause, complete, error) and download speed change. The following
+is a typical usage example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bitpit</span>
+
+<span class="c1">#will download this</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://www.python.org/static/img/python-logo.png&#39;</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">bitpit</span><span class="o">.</span><span class="n">Downloader</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="c1">#downloader instance</span>
+
+<span class="c1">#listen to download events and call a function whenever an event happens</span>
+<span class="c1">#print state when state changes</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;state-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;download state:&#39;</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">state</span><span class="p">))</span>
+
+<span class="c1">#print speed in human readable format whenever speed changes</span>
+<span class="c1">#speed is updated and callback is called every 1 second by default</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;download speed:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">var</span><span class="o">.</span><span class="n">human_speed</span><span class="p">))</span>
+
+<span class="c1">#register another callback function to the speed change signal</span>
+<span class="c1">#print percentage downloaded whenever speed changes</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">percentage</span><span class="p">),</span> <span class="s1">&#39;%&#39;</span><span class="p">))</span>
+
+<span class="c1">#print total file size in human readable format when the downloader knows the file size</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;size-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;total file size:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">var</span><span class="o">.</span><span class="n">human_size</span><span class="p">))</span>
+
+<span class="c1">#done registering callbacks. lets start our download</span>
+<span class="c1">#the following call will not block. it will start a new download thread</span>
+<span class="n">d</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="c1">#do some other work while download is taking place...</span>
+
+<span class="c1">#wait for download completion or error</span>
+<span class="n">d</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This module can also be run as a main python script to download a file. You can
+have a look at the main function for another usage example.</p>
+<p>commandline syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>python -m bitpit.py &lt;url&gt;
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last simple">
+<li>url: the url to download.</li>
+</ul>
+</dd>
+</dl>
+<dl class="class">
+<dt id="bitpit.Downloader">
+<em class="property">class </em><code class="descclassname">bitpit.</code><code class="descname">Downloader</code><span class="sig-paren">(</span><em>url</em>, <em>path=None</em>, <em>dir_path=False</em>, <em>rate_limit=0</em>, <em>timeout=10</em>, <em>update_period=1</em>, <em>restart_wait=-1</em>, <em>chunk_size=4096</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Downloader" title="Permalink to this definition">¶</a></dt>
+<dd><p>download manager class. instances of this class are able to download files
+from an http or https server in a dedicated thread, pause download and
+resume download. it subclasses <code class="docutils literal"><span class="pre">Emitter</span></code>.</p>
+<p>in addition to listen and unlisten, you probably want to use the
+following methods:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">self.start()</span></code></li>
+<li><code class="docutils literal"><span class="pre">self.stop()</span></code></li>
+<li><code class="docutils literal"><span class="pre">self.join()</span></code></li>
+<li><code class="docutils literal"><span class="pre">self.bar()</span></code></li>
+</ul>
+</div></blockquote>
+<p>properties:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="29%" />
+<col width="13%" />
+<col width="35%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">name</th>
+<th class="head">type</th>
+<th class="head">access</th>
+<th class="head">description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>url</td>
+<td><cite>str</cite></td>
+<td>RW</td>
+<td>url to download. cannot
+be set if <cite>is_alive</cite> is
+True.</td>
+</tr>
+<tr class="row-odd"><td>path</td>
+<td><cite>pathlib.Path</cite> or
+<cite>io.BufferedIOBase</cite></td>
+<td>RW</td>
+<td>path to download at. if
+an instance of
+<cite>pathlib.Path</cite>, file
+will be opened and
+content will be written
+to it. the file is
+closed whenever the
+download stops
+(completion, pause or
+error). if it is an
+instance of
+<cite>io.BufferedIOBase</cite>,
+content is written to
+the object and the
+object is never closed.
+cannot be set if
+<cite>is_alive</cite> property is
+True.</td>
+</tr>
+<tr class="row-even"><td>restart_wait</td>
+<td><cite>int</cite></td>
+<td>RW</td>
+<td>number of seconds to
+wait before restarting
+the download in case of
+error. setting it when
+a restart thread is
+active will restart the
+thread again.</td>
+</tr>
+<tr class="row-odd"><td>restart_time</td>
+<td><cite>datetime.datetime</cite>
+or <cite>None</cite></td>
+<td>R</td>
+<td>the time when the
+download will be
+restarted. <cite>None</cite> if
+there is no scheduled
+restart.</td>
+</tr>
+<tr class="row-even"><td>chunk_size</td>
+<td><cite>int</cite></td>
+<td>RW</td>
+<td>number of bytes to write
+in a single write
+operation. ok to keep
+default value. when set,
+new value takes effect
+in the next time the
+download is started.</td>
+</tr>
+<tr class="row-odd"><td>update_period</td>
+<td><cite>int</cite></td>
+<td>RW</td>
+<td><cite>speed-changed</cite> signal
+is emitted every this
+number of seconds.</td>
+</tr>
+<tr class="row-even"><td>timeout</td>
+<td><cite>int</cite></td>
+<td>RW</td>
+<td>download will interrupt
+when no bytes are
+recieved for this number
+of seconds. when set,
+new value takes effect
+in the next time the
+download is started.</td>
+</tr>
+<tr class="row-odd"><td>rate_limit</td>
+<td><cite>int</cite></td>
+<td>RW</td>
+<td>speed limit of the
+downloads in bytes per
+second.</td>
+</tr>
+<tr class="row-even"><td>human_rate_limit</td>
+<td><cite>tuple</cite></td>
+<td>R</td>
+<td>same as <cite>rate_limit</cite> but
+as human readable tuple.
+eg. (100.0, &#8216;KB/s&#8217;).</td>
+</tr>
+<tr class="row-odd"><td>size</td>
+<td><cite>int</cite></td>
+<td>R</td>
+<td>total size of the file
+being downloaded in
+bytes. -1 if unknown.</td>
+</tr>
+<tr class="row-even"><td>human_size</td>
+<td><cite>tuple</cite></td>
+<td>R</td>
+<td>same as <cite>size</cite> but as
+human readable tuple.</td>
+</tr>
+<tr class="row-odd"><td>downloaded</td>
+<td><cite>int</cite></td>
+<td>R</td>
+<td>bytes downloaded so far.</td>
+</tr>
+<tr class="row-even"><td>human_downloaded</td>
+<td><cite>tuple</cite></td>
+<td>R</td>
+<td>same as <cite>downloaded</cite> but
+as human readable tuple.</td>
+</tr>
+<tr class="row-odd"><td>remaining</td>
+<td><cite>int</cite></td>
+<td>R</td>
+<td>bytes remaining to
+complete the download.</td>
+</tr>
+<tr class="row-even"><td>human_remaining</td>
+<td><cite>tuple</cite></td>
+<td>R</td>
+<td>same as <cite>remaining</cite> but
+as human readable tuple.</td>
+</tr>
+<tr class="row-odd"><td>speed</td>
+<td><cite>int</cite></td>
+<td>R</td>
+<td>download speed in bytes
+per second.</td>
+</tr>
+<tr class="row-even"><td>human_speed</td>
+<td><cite>tuple</cite></td>
+<td>R</td>
+<td>same as <cite>speed</cite> but as
+human readable tuple.</td>
+</tr>
+<tr class="row-odd"><td>ratio</td>
+<td><cite>float</cite></td>
+<td>R</td>
+<td><cite>downloaded</cite> / <cite>size</cite>.
+-1.0 if unknown.</td>
+</tr>
+<tr class="row-even"><td>percentage</td>
+<td><cite>float</cite></td>
+<td>R</td>
+<td>100 * <cite>ratio</cite></td>
+</tr>
+<tr class="row-odd"><td>eta</td>
+<td><cite>datetime.timedelta</cite></td>
+<td>R</td>
+<td>estimated time remaining
+to complete the
+download.</td>
+</tr>
+<tr class="row-even"><td>state</td>
+<td><cite>str</cite></td>
+<td>R</td>
+<td><dl class="first last docutils">
+<dt>one of the following:</dt>
+<dd><ul class="first last simple">
+<li>start: trying to
+connect.</li>
+<li>download:
+downloading now.</li>
+<li>pause: stopped.</li>
+<li>error: stopped
+because of an error.</li>
+<li>complete: completed.</li>
+</ul>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="row-odd"><td>is_alive</td>
+<td><cite>bool</cite></td>
+<td>R</td>
+<td>True if download thread
+is running. False
+otherwise.</td>
+</tr>
+<tr class="row-even"><td>is_restarting</td>
+<td><cite>bool</cite></td>
+<td>R</td>
+<td>True if restart thread
+is running. False
+otherwise.</td>
+</tr>
+<tr class="row-odd"><td>last_exception</td>
+<td><cite>BaseException</cite> or
+<cite>None</cite></td>
+<td>R</td>
+<td>last exception that
+occured during download.
+<cite>None</cite> if no exception
+occured yet.</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>signals:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>state-changed: emitted when <code class="docutils literal"><span class="pre">state</span></code> property changes. its callback</dt>
+<dd><p class="first last">takes 2 positional arguments, the <code class="docutils literal"><span class="pre">Downloader</span></code> instance which
+emitted the signal and the old state the <code class="docutils literal"><span class="pre">Downloader</span></code> was in.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>size-changed: emitted when <code class="docutils literal"><span class="pre">size</span></code> property changes. its callback takes</dt>
+<dd><p class="first last">1 positional argument, the <code class="docutils literal"><span class="pre">Downloader</span></code> instance which emitted the
+signal.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>speed-changed: emitted when <code class="docutils literal"><span class="pre">speed</span></code> property changes. its callback</dt>
+<dd><p class="first last">takes 1 positional argument, the <code class="docutils literal"><span class="pre">Downloader</span></code> instance which emitted
+the signal.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>url-changed: emitted when <code class="docutils literal"><span class="pre">url</span></code> property changes. its callback takes 1</dt>
+<dd><p class="first last">positional argument, the <code class="docutils literal"><span class="pre">Downloader</span></code> instance which emitted the
+signal.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>path-changed: emitted when <code class="docutils literal"><span class="pre">path</span></code> property changes. its callback takes</dt>
+<dd><p class="first last">1 positional argument, the <code class="docutils literal"><span class="pre">Downloader</span></code> instance which emitted the
+signal.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>restart-time-changed: emitted when <code class="docutils literal"><span class="pre">restart_time</span></code> property changes.</dt>
+<dd><p class="first last">its callback takes 1 positional argument, the <code class="docutils literal"><span class="pre">Downloader</span></code> instance
+which emitted the signal.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>rate-limit-changed: emitted when <code class="docutils literal"><span class="pre">rate_limit</span></code> property changes. its</dt>
+<dd><p class="first last">callback takes 1 positional argument, the <code class="docutils literal"><span class="pre">Downloader</span></code> instance
+which emitted the signal.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="bitpit.Downloader.bar">
+<code class="descname">bar</code><span class="sig-paren">(</span><em>width=30</em>, <em>char='='</em>, <em>unknown='?'</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Downloader.bar" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a string of width <code class="docutils literal"><span class="pre">width</span></code> representing a progress bar.
+the string is filled with <code class="docutils literal"><span class="pre">char</span></code> and spaces. the number of <code class="docutils literal"><span class="pre">char</span></code>
+represents the part of the file downloaded (e.g., if half of the file
+is downloaded, half of the string will be filled with <code class="docutils literal"><span class="pre">char</span></code>). the rest
+of the string will be filled with spaces. if the ratio of downloaded
+data is not known, returns a string of width <code class="docutils literal"><span class="pre">width</span></code> filled with the
+<code class="docutils literal"><span class="pre">unknown</span></code> argument.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last">
+<li><p class="first">width (int): number of characters in the bar.</p>
+</li>
+<li><p class="first">char (str) character to fill the bar with.</p>
+</li>
+<li><dl class="first docutils">
+<dt>unknown (str): character to fill the bar if the ratio downloaded is</dt>
+<dd><p class="first last">unknown.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><p class="first">a string containing <code class="docutils literal"><span class="pre">width</span></code> characters filled with <code class="docutils literal"><span class="pre">char</span></code> and spaces
+to show the ratio of the downloaded bytes to the total file size.</p>
+<dl class="last docutils">
+<dt>examples:</dt>
+<dd><p class="first">if the width is 8 and 25% of the file is downloaded, the
+returned string will be &#8216;==      &#8216;</p>
+<p class="last">if the width is 8 and the ratio downloaded is not known, the
+returned string will be &#8216;????????&#8217;</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Downloader.join">
+<code class="descname">join</code><span class="sig-paren">(</span><em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Downloader.join" title="Permalink to this definition">¶</a></dt>
+<dd><p>waits until the downloading thread terminates for any reason (download
+completion, error or pause). check <code class="docutils literal"><span class="pre">self.state</span></code> after join if you want
+to know the state of the download.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>timeout (None or int) the timeout for the join operation. defaults</dt>
+<dd><p class="first last">to None meaning no timeout.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Downloader.restart">
+<code class="descname">restart</code><span class="sig-paren">(</span><em>wait=None</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Downloader.restart" title="Permalink to this definition">¶</a></dt>
+<dd><p>schedules a download restart and returns. it is called when an error
+occures during download and <code class="docutils literal"><span class="pre">self.restart_wait</span></code> property &gt;= 0.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>wait (float or None): seconds to wait before the restart. if None,</dt>
+<dd><p class="first last">uses <code class="docutils literal"><span class="pre">self.restart_wait</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Downloader.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Downloader.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>starts a downloading thread. if <code class="docutils literal"><span class="pre">self.path</span></code> has data, the download will
+resume and bytes will be appended to the end of the file. does nothing
+if the downloader is already started. if there is a scheduled restart,
+it will be cancelled.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Downloader.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Downloader.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>stops downloading thread. does nothing if the downloader is already
+stopped. if there is a scheduled restart, it will be cancelled.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Downloader.update_size">
+<code class="descname">update_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Downloader.update_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>sends a head request to get the size of the file update <code class="docutils literal"><span class="pre">self.size</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bitpit.Emitter">
+<em class="property">class </em><code class="descclassname">bitpit.</code><code class="descname">Emitter</code><a class="headerlink" href="#bitpit.Emitter" title="Permalink to this definition">¶</a></dt>
+<dd><p>a base class for classes that implement event driven programming. a derived
+class should define the class attribute <code class="docutils literal"><span class="pre">__signals__</span></code> which is a sequence of
+its valid signals.</p>
+<dl class="method">
+<dt id="bitpit.Emitter.emit">
+<code class="descname">emit</code><span class="sig-paren">(</span><em>signal</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Emitter.emit" title="Permalink to this definition">¶</a></dt>
+<dd><p>calls all callback functions previously registered for the signal by
+previous calls to <code class="docutils literal"><span class="pre">self.listen()</span></code>. emitting a signal not present
+in <code class="docutils literal"><span class="pre">__signals__</span></code> class property raises <code class="docutils literal"><span class="pre">KeyError</span></code>. exceptions raised by
+the callback function are printed to stderr and ignored.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last">
+<li><p class="first">signal (str): the signal to call its callbacks.</p>
+</li>
+<li><dl class="first docutils">
+<dt>args: positional arguments to be passed to the callbacks. args</dt>
+<dd><p class="first last">that were passed to <code class="docutils literal"><span class="pre">self.listen()</span></code> will be after <code class="docutils literal"><span class="pre">args</span></code> that
+are passed to this method.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Emitter.listen">
+<code class="descname">listen</code><span class="sig-paren">(</span><em>signal</em>, <em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Emitter.listen" title="Permalink to this definition">¶</a></dt>
+<dd><p>registers the callback function <code class="docutils literal"><span class="pre">func</span></code> for the signal <code class="docutils literal"><span class="pre">signal</span></code>. whenever
+the signal is emitted, the callback function will be called with 1
+argument which is the object that emitted the signal. listening to a
+signal not present in class attribute <code class="docutils literal"><span class="pre">__signals__</span></code> raises <code class="docutils literal"><span class="pre">KeyError</span></code>.
+registering a callback function multiple times calls the function that
+number of times when the signal is emitted.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last simple">
+<li>signal (str): the signal to listen to.</li>
+<li>func (a callable): the callback function.</li>
+<li>args: positional arguments to be passed to the callback.</li>
+<li>kwargs: keyword arguments to be passed to the callback.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Emitter.unlisten">
+<code class="descname">unlisten</code><span class="sig-paren">(</span><em>signal</em>, <em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Emitter.unlisten" title="Permalink to this definition">¶</a></dt>
+<dd><p>unregisters the callback function <code class="docutils literal"><span class="pre">func</span></code> for the signal <code class="docutils literal"><span class="pre">signal</span></code>.
+unlistening from an unknown signal raises <code class="docutils literal"><span class="pre">KeyError</span></code>. unlistening a
+callback which was not passed to <code class="docutils literal"><span class="pre">listen</span></code> method previously raises a
+<code class="docutils literal"><span class="pre">ValueError</span></code>. unlistening a call back will remove it from callback list
+only once. if the callback was passed to <code class="docutils literal"><span class="pre">self.listen()</span></code> multiple times,
+it must be unlistened that number of times to be completely removed from
+the callback list.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last simple">
+<li>signal (str): the signal to unlisten from.</li>
+<li>func (a callable): the callback function.</li>
+<li>args: <code class="docutils literal"><span class="pre">args</span></code> that were passed to <code class="docutils literal"><span class="pre">self.listen()</span></code>.</li>
+<li>kwargs: <code class="docutils literal"><span class="pre">kwargs</span></code> that were passed to <code class="docutils literal"><span class="pre">self.listen()</span></code>.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bitpit.Manager">
+<em class="property">class </em><code class="descclassname">bitpit.</code><code class="descname">Manager</code><span class="sig-paren">(</span><em>max_running=0</em>, <em>rate_limit=0</em>, <em>min_period=5</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>download manager class. multiple urls can be added to it. you can specify
+the maximum number of downloads that run at a single time and the manager
+will start or stop downloads to reach and not exceed this number. you can
+also specify the total download rate limit and the manager class will
+equally divide the speed over the running downloads.</p>
+<p>the <code class="docutils literal"><span class="pre">Manager</span></code> class subclasses <code class="docutils literal"><span class="pre">Emitter</span></code> and emits signals when a download
+is added, removed or completed.</p>
+<p>properties:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="10%" />
+<col width="9%" />
+<col width="65%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">name</th>
+<th class="head">type</th>
+<th class="head">access</th>
+<th class="head">description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>rate_limit</td>
+<td><cite>int</cite></td>
+<td>RW</td>
+<td>rate limit for all running downloads. it will
+be divided equally over the them. a value
+&lt;= 0 means no rate limit.</td>
+</tr>
+<tr class="row-odd"><td>max_running</td>
+<td><cite>int</cite></td>
+<td>RW</td>
+<td>maximum running downloads at a single time.
+if the number of started downloads exceed
+this number, the manager will stop some
+downloads. if the number is less than this
+number, the manager will start some
+downloads. a value &lt;= 0 means no limit.</td>
+</tr>
+<tr class="row-even"><td>min_period</td>
+<td><cite>float</cite></td>
+<td>RW</td>
+<td>minimum time between manager checks in the
+managed downloads to see if there is need to
+start, stop or change rate limit of some of
+them. if an event happened shortly after the
+last check, the manager will wait until this
+number of seconds has passed. this is to
+prevent frequent checks in case of network
+failure.</td>
+</tr>
+<tr class="row-odd"><td>kwargs</td>
+<td><cite>dict</cite></td>
+<td>RW</td>
+<td>keyword arguments to added downloads when
+creating an instance of <cite>Downloader</cite> using
+<cite>self.add()</cite></td>
+</tr>
+<tr class="row-even"><td>downloads</td>
+<td><cite>list</cite></td>
+<td>R</td>
+<td>downloads that are not completed yet. a list
+containing <cite>Downloader</cite> instances.</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>signals:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>add: emitted when a new <code class="docutils literal"><span class="pre">Downloader</span></code> is added. the signal&#8217;s callbacks</dt>
+<dd><p class="first last">take 2 positional arguments, the <code class="docutils literal"><span class="pre">Manager</span></code> instance that emitted the
+signal and the <code class="docutils literal"><span class="pre">Downloader</span></code> that was just added. the added
+<code class="docutils literal"><span class="pre">Downloader</span></code> can be found in <code class="docutils literal"><span class="pre">self.downloads</span></code>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>remove: emitted when a <code class="docutils literal"><span class="pre">Downloader</span></code> is removed. the signal&#8217;s callbacks</dt>
+<dd><p class="first last">take 2 positional arguments, the <code class="docutils literal"><span class="pre">Manager</span></code> instance that emitted the
+signal and the <code class="docutils literal"><span class="pre">Downloader</span></code> that was just removed. the removed
+<code class="docutils literal"><span class="pre">Downloader</span></code> can no longer be found in <code class="docutils literal"><span class="pre">self.downloads</span></code>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>property-changed: emitted when <cite>rate_limit</cite>, <cite>max_running</cite>,</dt>
+<dd><p class="first last"><cite>min_period</cite> or <cite>kwargs</cite> property is changed.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="bitpit.Manager.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Manager.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>add a new download to the manager.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>d (str or <code class="docutils literal"><span class="pre">Downloader</span></code>): the url or <code class="docutils literal"><span class="pre">Downloader</span></code> instance to</dt>
+<dd><p class="first last">add. if <code class="docutils literal"><span class="pre">d</span></code> type is str, a new <code class="docutils literal"><span class="pre">Downloader</span></code> instance is
+created with arguments taken from <cite>self.kwargs</cite> property.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd>the <code class="docutils literal"><span class="pre">Downloader</span></code> instance added.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Manager.remove">
+<code class="descname">remove</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Manager.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove a previously added download then emits <code class="docutils literal"><span class="pre">remove</span></code> signal. if the
+download is running, it is not stopped.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last simple">
+<li>d (<code class="docutils literal"><span class="pre">Downloader</span></code>): the downloader to remove.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Manager.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Manager.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>start download manager thread. after a call to this method, the manager
+will start checking added downloads to start, stop and change rate limit
+when necessary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Manager.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Manager.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>stop the manager thread.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Manager.stop_all">
+<code class="descname">stop_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Manager.stop_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>pause all currently running downloads. the manager thread is not
+stopped. if you want to stop the manager and all downloads, call
+<code class="docutils literal"><span class="pre">self.stop()</span></code> first.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bitpit.Manager.update">
+<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.Manager.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>tell the manager thread to check pending downloads to see if there is
+need to start, stop or change rate limit to some of them. this is called
+automatically when the state of any added download changes and when
+manager properties are changed. you do not need to call it.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="bitpit.human_readable">
+<code class="descclassname">bitpit.</code><code class="descname">human_readable</code><span class="sig-paren">(</span><em>n</em>, <em>digits=3</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.human_readable" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a human readable number of bytes.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last simple">
+<li>n (float): the number to return as human readable.</li>
+<li>digits (int): the number of digits before the decimal point.</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><dl class="first last docutils">
+<dt>tuple:</dt>
+<dd><ol class="first last arabic simple" start="0">
+<li>(float) human readable number or None if n is None.</li>
+<li>(str) suffix or None if n is None.</li>
+</ol>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="bitpit.main">
+<code class="descclassname">bitpit.</code><code class="descname">main</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>called when running this module as the main script. downloads the given url
+until done. on error, restarts after 30 seconds. displays a progress bar
+indicating how much of the file has been downloaded in addition to other
+statistics.</p>
+<dl class="docutils">
+<dt>args:</dt>
+<dd><ul class="first last simple">
+<li>url: the url to download.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="elegant-output.html" title="previous chapter">Elegant Output</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/reference.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Mohammad Alghafli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/reference.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Quick Guide &mdash; bitpit 0.0.6 documentation</title>
+    <title>Quick Guide &mdash; bitpit 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.0.6',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="bitpit 0.0.6 documentation" href="index.html" />
+    <link rel="top" title="bitpit 1.0.0 documentation" href="index.html" />
     <link rel="next" title="Download a File" href="download-a-file.html" />
     <link rel="prev" title="Installation" href="installation.html" />
    
@@ -55,18 +55,27 @@ features. The library is written in an event-driven style similar to GTK+.</p>
 
 <span class="c1">#listen to download events and call a function whenever an event happens</span>
 <span class="c1">#print state when state changes</span>
-<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;state-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;download state:&#39;</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">state</span><span class="p">))</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span>
+        <span class="s1">&#39;state-changed&#39;</span><span class="p">,</span>
+        <span class="k">lambda</span> <span class="n">var</span><span class="p">,</span> <span class="n">old_state</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;download state:&#39;</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+    <span class="p">)</span>
 
 <span class="c1">#print speed in human readable format whenever speed changes</span>
 <span class="c1">#speed is updated and callback is called every 1 second by default</span>
-<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;download speed:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">var</span><span class="o">.</span><span class="n">human_speed</span><span class="p">))</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span>
+        <span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span>
+        <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;download speed:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">var</span><span class="o">.</span><span class="n">human_speed</span><span class="p">)</span>
+    <span class="p">)</span>
 
 <span class="c1">#register another callback function to the speed change signal</span>
 <span class="c1">#print percentage downloaded whenever speed changes</span>
 <span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;speed-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">percentage</span><span class="p">),</span> <span class="s1">&#39;%&#39;</span><span class="p">))</span>
 
 <span class="c1">#print total file size in human readable format when the downloader knows the file size</span>
-<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;size-changed&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;total file size:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">var</span><span class="o">.</span><span class="n">human_size</span><span class="p">))</span>
+<span class="n">d</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span>
+        <span class="s1">&#39;size-changed&#39;</span><span class="p">,</span>
+        <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;total file size:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">var</span><span class="o">.</span><span class="n">human_size</span><span class="p">)</span>
+    <span class="p">)</span>
 
 <span class="c1">#done registering callbacks. lets start our download</span>
 <span class="c1">#the following call will not block. it will start a new download thread</span>
@@ -86,15 +95,17 @@ features. The library is written in an event-driven style similar to GTK+.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>python -m bitpit.py &lt;url&gt;
 </pre></div>
 </div>
-<dl class="docutils">
-<dt>args:</dt>
-<dd>url: the url to download.</dd>
-</dl>
+<p>args:</p>
+<blockquote>
+<div><ul class="simple">
+<li>url: the url to download.</li>
+</ul>
+</div></blockquote>
 </div>
 <div class="section" id="other-arguments">
 <h2>Other arguments<a class="headerlink" href="#other-arguments" title="Permalink to this headline">¶</a></h2>
 <p>Most of what you can do is done by passing the desired args to
-<cite>Downloader.__init__()</cite>. Here are most of the args you can use:</p>
+<code class="docutils literal"><span class="pre">Downloader.__init__()</span></code>. Here are most of the args you can use:</p>
 <ol class="arabic">
 <li><p class="first">url: URL to download</p>
 </li>
@@ -126,6 +137,10 @@ features. The library is written in an event-driven style similar to GTK+.</p>
 </li>
 </ol>
 </div>
+<div class="section" id="tutorial">
+<h2>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h2>
+<p>In <a class="reference internal" href="download-a-file.html"><em>Download a File</em></a> you will find a more comprehensive bitpit tutorial.</p>
+</div>
 </div>
 
 
@@ -140,6 +155,7 @@ features. The library is written in an event-driven style similar to GTK+.</p>
 <li><a class="reference internal" href="#usage-example">Usage example</a></li>
 <li><a class="reference internal" href="#as-main-script">As main script</a></li>
 <li><a class="reference internal" href="#other-arguments">Other arguments</a></li>
+<li><a class="reference internal" href="#tutorial">Tutorial</a></li>
 </ul>
 </li>
 </ul>

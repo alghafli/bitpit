@@ -6,12 +6,14 @@ copied and modified from https://github.com/pypa/sampleproject
 from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
-from os import path
+import re
 
-here = path.abspath(path.dirname(__file__))
+long_description = open('README.txt').read()
 
-with open('README.txt') as f:
-    long_description = f.read()
+version = re.search(
+        ':Version: (?P<version>[0-9](\.[0-9])*)',
+        long_description
+    ).group(1)
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
@@ -36,7 +38,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.6',  # Required
+    version=version,  # Required
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
@@ -172,3 +174,4 @@ setup(
     #    'Source': 'https://github.com/pypa/sampleproject/',
     #},
 )
+

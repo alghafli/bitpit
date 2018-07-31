@@ -6,7 +6,7 @@ So far, our program freezes until the download stops. However, when the program
 ends we are not sure whether the file is stopped because it is completely
 downloaded or because an error occured. What if an error occured and we want to
 restart the download again? This is easy. We just pass ``restart_wait`` argument
-to `Downloader.__init__()`::
+to ``Downloader.__init__()``::
 
     dl = bitpit.Downloader(url, restart_wait=30)
 
@@ -40,8 +40,8 @@ One last note, some connection errors are perminant. For instance, if you get a
 404 NOT FOUND error, then no matter how many times you try, the error will keep
 happening. bitpit does not handle that and will keep trying to download
 regardless of the error. You can check the error that happened by looking at the
-`Downloader.last_exception` property. You will most probably get an exception
-from `requests.exceptions` module.
+``Downloader.last_exception`` property. You will most probably get an exception
+from ``requests.exceptions`` module.
 
 We have only changed 1 line in this lesson. Now our program so far has become::
 
@@ -53,7 +53,7 @@ We have only changed 1 line in this lesson. Now our program so far has become::
     def on_speed_changed(downloader):
         print('The speed is', *downloader.human_speed)
     
-    def on_state_changed(downloader):
+    def on_state_changed(downloader, old_state):
         print('The state changed to:', downloader.state)
     
     #will download this
@@ -78,7 +78,10 @@ We have only changed 1 line in this lesson. Now our program so far has become::
     
     #end of the main thread
 
-We are getting closer to the end. Next, we will specify the path and name to
+We are getting closer to the end.
+
+In :doc:`specify-path-and-rate-limit`, we will specify the path and name to
 save our file instead of saving it in the current directory with the default
 name. We will also start limiting the download speed instead of eating up all
-our connection bandwidth before my brother gets angry.
+our internet bandwidth before my brother gets angry.
+

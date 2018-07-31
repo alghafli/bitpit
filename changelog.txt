@@ -1,0 +1,39 @@
+0.0.6:
+    - initial release
+1.0.0:
+    - Emitter class:
+        - emit() no longer gives self as an argument.
+        - emit() takes *args positional arguments that will be passed to
+          callbacks.
+        - listen() now takes *args and **kwargs. these will be passed to
+          callbacks. *args in emit() come first before *args in listen().
+        - unlisten() now takes *args and **kwargs. these must be the same values
+          passed to listen() in order to unlisten the callback.
+    - Downloader class:
+        - rearranged constructor arguments order to make more frequently used
+          arguments first.
+        - changed ``chunk_size`` default value to 4 KB.
+        - added ``dir_path`` argument.
+        - rewritten attributes using @property decorator with some attributes
+          writable while others are only readable.
+        - added ``restart_time`` property.
+        - changed ``start`` state to mean the downloader just started but no
+          downloading is actually happening. only attempting to connect.
+        - added ``download`` state.
+        - now ``error`` state means an error occured and it is expected to be
+          temporary.
+        - added ``fatal-error`` state for errors that are expected to reoccure
+          if the download is restarted. no automatic restart happens if the
+          downloader stopped due to fatal error.
+        - added the following signals:
+            - url-changed
+            - path-changed
+            - restart-time-changed
+            - rate-limit-changed
+        - when the downloader gets the file size, it only emits ``size-changed``
+          signal when the new size is different from the old size.
+        - modify all emit() calls to keep the behaviour of previous version
+          after changing Emitter methods listen(), unlisten() and emit().
+    - added Manager class
+    - update documentation and add library reference.
+    

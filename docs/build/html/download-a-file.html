@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Download a File &mdash; bitpit 0.0.6 documentation</title>
+    <title>Download a File &mdash; bitpit 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.0.6',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="bitpit 0.0.6 documentation" href="index.html" />
+    <link rel="top" title="bitpit 1.0.0 documentation" href="index.html" />
     <link rel="next" title="Display Download Information" href="display-info.html" />
     <link rel="prev" title="Quick Guide" href="quick-guide.html" />
    
@@ -52,7 +52,7 @@ python logo:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://www.python.org/static/img/python-logo.png&#39;</span>
 </pre></div>
 </div>
-<p>Next comes bitpit business. We create a <cite>Downloader</cite> instance:</p>
+<p>Next comes bitpit business. We create a <code class="docutils literal"><span class="pre">Downloader</span></code> instance:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">dl</span> <span class="o">=</span> <span class="n">bitpit</span><span class="o">.</span><span class="n">Downloader</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -61,7 +61,7 @@ python logo:</p>
 <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Download has started.&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Now the download will start. Notice that <cite>Downloader.start()</cite> call will not
+<p>Now the download will start. Notice that <code class="docutils literal"><span class="pre">Downloader.start()</span></code> call will not
 block. The message <code class="docutils literal"><span class="pre">Download</span> <span class="pre">has</span> <span class="pre">started.</span></code> will be printed immediately before
 the download finishes. Then our main thread will end but the downloading thread
 will keep running until the file is fully downloaded or an error occures.</p>
@@ -85,7 +85,7 @@ look at that later but for now, let&#8217;s look at the program we have written 
 <span class="c1">#end of the main thread</span>
 </pre></div>
 </div>
-<p>Next, we will make the program give us information about the download such as
+<p>In <a class="reference internal" href="display-info.html"><em>Display Download Information</em></a>, we will make the program give us information about the download such as
 whether it has started or faced an error and also the download speed.</p>
 </div>
 
