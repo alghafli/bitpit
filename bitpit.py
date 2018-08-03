@@ -1,6 +1,6 @@
 '''
 :Date: 2018-07-31
-:Version: 1.0.0
+:Version: 1.1.0
 :Authors:
     * Mohammad Alghafli <thebsom@gmail.com>
 
@@ -182,9 +182,9 @@ class Emitter:
 
 class Downloader(Emitter):
     '''
-    download manager class. instances of this class are able to download files
-    from an http or https server in a dedicated thread, pause download and
-    resume download. it subclasses ``Emitter``.
+    downloader class. instances of this class are able to download files from an
+    http or https server in a dedicated thread, pause download and resume
+    download. it subclasses ``Emitter``.
     
     in addition to listen and unlisten, you probably want to use the
     following methods:
@@ -251,7 +251,8 @@ class Downloader(Emitter):
                                                        download is started.
     rate_limit        `int`                 RW         speed limit of the
                                                        downloads in bytes per
-                                                       second.
+                                                       second. may not work well
+                                                       with small files.
     human_rate_limit  `tuple`               R          same as `rate_limit` but
                                                        as human readable tuple.
                                                        eg. (100.0, 'KB/s').
@@ -355,7 +356,7 @@ class Downloader(Emitter):
         super().__init__()
         
         self._thread = threading.Thread(target=self._do_start)
-        self._restart_thread = threading.Thread(target=self._do_restart)
+        self._restart_thread = threading.Timer(0, self.start)
         self._lock = threading.RLock()
         
         self.url = url
@@ -407,11 +408,7 @@ class Downloader(Emitter):
         '''
         with self._lock:
             if not self.is_alive:
-                if self.is_restarting:
-                    try:
-                        self._q.put_nowait(None)
-                    except queue.Full:
-                        pass
+                self._restart_thread.cancel()
                 self._thread = threading.Thread(target=self._do_start)
                 self._thread.start()
     
@@ -421,6 +418,7 @@ class Downloader(Emitter):
         data. you should call ``self.start()`` instead.
         '''
         try:
+            self._set_restart_time(None)
             try:
                 while True:
                     self._q.get_nowait()
@@ -524,6 +522,7 @@ class Downloader(Emitter):
         stops downloading thread. does nothing if the downloader is already
         stopped. if there is a scheduled restart, it will be cancelled.
         '''
+        self._restart_thread.cancel()
         try:
             self._q.put_nowait(None)
         except queue.Full:
@@ -538,8 +537,17 @@ class Downloader(Emitter):
             * wait (float or None): seconds to wait before the restart. if None,
                 uses ``self.restart_wait``.
         '''
-        self._restart_thread = threading.Thread(target=self._do_restart, args=(wait,))
-        self._restart_thread.start()
+        with self._lock:
+            self._restart_thread.cancel()
+            if wait is None:
+                wait = self.restart_wait
+            
+            self._set_restart_time(
+                    datetime.datetime.now() +
+                    datetime.timedelta(seconds=wait)
+                )
+            self._restart_thread = threading.Timer(wait, self.start)
+            self._restart_thread.start()
     
     def _do_restart(self, wait=None):
         '''
@@ -752,10 +760,6 @@ class Downloader(Emitter):
         self._restart_wait = value
         if self.is_restarting:
             print('currently restarting. will reset restart with new restart_wait', file=sys.stderr)
-            try:
-                self._q.put_nowait(None)
-            except queue.Full:
-                pass
             self.restart()
     
     @property
@@ -865,37 +869,37 @@ class Manager(Emitter):
     also specify the total download rate limit and the manager class will
     equally divide the speed over the running downloads.
     
-    the ``Manager`` class subclasses ``Emitter`` and emits signals when a download
-    is added, removed or completed.
+    the ``Manager`` class subclasses ``Emitter`` and emits signals when a
+    download is added or removed.
     
     properties:
     
-    ===========  =======  ======  =============================================
-    name         type     access  description
-    ===========  =======  ======  =============================================
-    rate_limit   `int`    RW      rate limit for all running downloads. it will
-                                  be divided equally over the them. a value
-                                  <= 0 means no rate limit.
-    max_running  `int`    RW      maximum running downloads at a single time.
-                                  if the number of started downloads exceed
-                                  this number, the manager will stop some
-                                  downloads. if the number is less than this
-                                  number, the manager will start some
-                                  downloads. a value <= 0 means no limit.
-    min_period   `float`  RW      minimum time between manager checks in the
-                                  managed downloads to see if there is need to
-                                  start, stop or change rate limit of some of
-                                  them. if an event happened shortly after the
-                                  last check, the manager will wait until this
-                                  number of seconds has passed. this is to
-                                  prevent frequent checks in case of network
-                                  failure.
-    kwargs       `dict`   RW      keyword arguments to added downloads when
-                                  creating an instance of `Downloader` using
-                                  `self.add()`
-    downloads    `list`   R       downloads that are not completed yet. a list
-                                  containing `Downloader` instances.
-    ===========  =======  ======  =============================================
+    ============  =======  ======  =============================================
+    name          type     access  description
+    ============  =======  ======  =============================================
+    rate_limit    `int`    RW      rate limit for all running downloads. it will
+                                   be divided equally over the them. a value
+                                   <= 0 means no rate limit.
+    max_running   `int`    RW      maximum running downloads at a single time.
+                                   if the number of started downloads exceed
+                                   this number, the manager will stop some
+                                   downloads. if the number is less than this
+                                   number, the manager will start some
+                                   downloads. a value <= 0 means no limit.
+    restart_wait  `float`  RW      minimum time before the manager starts the
+                                   same download. even if max_running is not
+                                   reached, if ``restart_wait`` has not passed
+                                   since the download last stopped, the download
+                                   not started immediately. the manager will
+                                   wait until this number of seconds has passed
+                                   then start the download. this is to prevent
+                                   frequent restarts in case of network failure.
+    kwargs        `dict`   RW      keyword arguments to added downloads when
+                                   creating an instance of `Downloader` using
+                                   `self.add()`
+    downloads     `list`   R       downloads that are not completed yet. a list
+                                   containing `Downloader` instances.
+    ============  =======  ======  =============================================
     
     signals:
         * add: emitted when a new ``Downloader`` is added. the signal's callbacks
@@ -907,7 +911,7 @@ class Manager(Emitter):
             signal and the ``Downloader`` that was just removed. the removed
             ``Downloader`` can no longer be found in ``self.downloads``.
         * property-changed: emitted when `rate_limit`, `max_running`,
-            `min_period` or `kwargs` property is changed.
+            `restart_wait` or `kwargs` property is changed.
         
     '''
     
@@ -917,31 +921,29 @@ class Manager(Emitter):
             'property-changed',
         ]
     
-    def __init__(self, max_running=0, rate_limit=0, min_period=5, **kwargs):
+    def __init__(self, max_running=0, rate_limit=0, restart_wait=30, **kwargs):
         '''
         constructor.
         args:
             * max_running (int): sets ``self.max_running`` property.
             * rate_limit (float): sets ``self.rate_limit`` property.
-            * min_period (float): sets ``self.min_period`` property.
+            * restart_wait (float): sets ``self.restart_wait`` property.
             * **kwargs: sets ``self.kwargs`` property.
         '''
         super().__init__()
         
         self._max_running = max_running
         self._rate_limit = rate_limit
-        self.min_period = min_period
+        self.restart_wait = restart_wait
         self.kwargs = kwargs
         self._downloads = []
         self._q = queue.Queue()
         self._thread = threading.Thread(target=self._do_start)
-        self._schedule_thread = threading.Thread(
-                target=self._schedule_update,
-                args=(0,),
-                daemon=True
+        self._schedule_thread = threading.Timer(
+                0,
+                self.update
             )
         self._lock = threading.RLock()
-        self._last_update = -min_period
     
     @property
     def rate_limit(self):
@@ -968,13 +970,13 @@ class Manager(Emitter):
         self.update()
     
     @property
-    def min_period(self):
-        return self._min_period
+    def restart_wait(self):
+        return self._restart_wait
     
-    @min_period.setter
-    def min_period(self, value):
-        self._min_period = value
-        self.emit('property-changed', self, 'min_period')
+    @restart_wait.setter
+    def restart_wait(self, value):
+        self._restart_wait = value
+        self.emit('property-changed', self, 'restart_wait')
     
     @property
     def kwargs(self):
@@ -1014,19 +1016,11 @@ class Manager(Emitter):
         self.update()
         while True:
             msg = self._q.get()
+            self._schedule_thread.cancel()
             if msg:
                 break
             
-            t = time.monotonic() - self._last_update
-            if t >= self.min_period:
-                self._do_update()
-            elif not self._schedule_thread.is_alive():
-                self._schedule_thread = threading.Thread(
-                        target=self._schedule_update,
-                        args=(t,),
-                        daemon=True
-                    )
-                self._schedule_thread.start()
+            self._do_update()
     
     def stop(self):
         '''
@@ -1049,7 +1043,7 @@ class Manager(Emitter):
             if not isinstance(d, Downloader):
                 d = Downloader(d, **self.kwargs)
             if d not in self.downloads:
-                self._downloads.append([d, False, time.monotonic()])
+                self._downloads.append([d, False, -1])
                 d.listen('state-changed', self._on_state_changed)
                 self.update()
                 self.emit('add', self, d)
@@ -1062,10 +1056,11 @@ class Manager(Emitter):
         ``self.stop()`` first.
         '''
         with self._lock:
+            t = time.monotonic()
             for c in self._downloads:
                 if c[1]:
                     c[0].stop()
-                    c[2] = time.monotonic()
+                    c[2] = t
     
     def update(self):
         '''
@@ -1085,8 +1080,11 @@ class Manager(Emitter):
         args:
             t (float): time to wait before updating.
         '''
-        time.sleep(t)
-        self.update()
+        self._schedule_thread = threading.Timer(
+                t,
+                self.update,
+            )
+        self._schedule_thread.start()
     
     def _do_update(self):
         '''
@@ -1095,17 +1093,17 @@ class Manager(Emitter):
         ``self.update()``
         '''
         with self._lock:
-            self._last_update = time.monotonic()
+            t = time.monotonic()
             
             #flag fatal and completed downloads as paused
-            completed = [
+            not_checked = [
                     df for df in self._downloads if (
                             df[1] and df[0].state in ['complete', 'fatal-error']
                         )
             ]
-            for df in completed:
+            for df in not_checked:
                 df[1] = False
-                df[2] = time.monotonic()
+                df[2] = t
             
             #seperate downloads flagged as started or paused
             #sort them by last state change time
@@ -1128,7 +1126,7 @@ class Manager(Emitter):
                 ]
             for df in pstarted:
                 df[1] = False
-                df[2] = time.monotonic()
+                df[2] = t
                 idx = started.index(df)
                 started.pop(idx)
                 paused.append(df)
@@ -1142,7 +1140,7 @@ class Manager(Emitter):
                 ]
             for df in spaused:
                 df[1] = True
-                df[2] = time.monotonic()
+                df[2] = t
                 idx = paused.index(df)
                 paused.pop(idx)
                 started.append(df)
@@ -1153,8 +1151,11 @@ class Manager(Emitter):
                     df = started.pop(0)
                     df[0].stop()
                     df[1] = False
-                    df[2] = time.monotonic()
+                    df[2] = t
                     paused.append(df)
+            
+            #filter downloads that were not paused only recently
+            to_start = [df for df in paused if df[2] <= t - self.restart_wait]
             
             #start downloads if we are still below self.max_running
             while (
@@ -1162,9 +1163,9 @@ class Manager(Emitter):
                             self.max_running <= 0 or
                             len(started) < self.max_running
                         ) and
-                    paused
+                    to_start
                 ):
-                df = paused.pop(0)
+                df = to_start.pop(0)
                 started.append(df)
             
             #if there are downloads marked as started
@@ -1179,8 +1180,13 @@ class Manager(Emitter):
                     df[0].rate_limit = rate
                     if not df[1]:
                         df[1] = True
-                        df[2] = time.monotonic()
+                        df[2] = t
                         df[0].start()
+            
+            t = [df[2] for df in paused if df[2] > t - self.restart_wait]
+            if t:
+                t = min(t) + self.restart_wait - time.monotonic()
+                self._schedule_update(t)
     
     def remove(self, d):
         '''
@@ -1210,8 +1216,8 @@ class Manager(Emitter):
     
     def _on_state_changed(self, d=None, old_state=None):
         '''
-        callback to be called when ``state-changed`` signal is emitted from any of
-        the managed downloads.
+        callback to be called when ``state-changed`` signal is emitted from any
+        of the managed downloads.
         '''
         self.update()
 
