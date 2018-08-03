@@ -1,4 +1,10 @@
 import subprocess
+import os
+
+os.chdir('docs')
+subprocess.check_call(['make', 'html'])
+
+os.chdir('..')
 
 doc_text = open('bitpit.py').read().split("'''", 2)[1]
 tutorial_text = '''

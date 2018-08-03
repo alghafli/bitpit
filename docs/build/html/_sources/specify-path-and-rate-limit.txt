@@ -67,7 +67,7 @@ program output now::
     The state changed to: complete
 
 You can see that the download speed became very close to 2 KB/s (or a little
-less).
+less). However, note that this may not work as expected for small files.
 
 Our full program so far became::
 

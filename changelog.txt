@@ -36,4 +36,15 @@
           after changing Emitter methods listen(), unlisten() and emit().
     - added Manager class
     - update documentation and add library reference.
-    
+1.1.0:
+    - changed ``min_period`` property name in Manager class to ``restart_wait``
+      to match the naming of Downloader class.
+    - changed the meaning of ``restart_wait`` property in Manager class to mean
+      the minimum time to keep a download paused before it is started again. now
+      manager updates can happen frequently if needed but a single download will
+      not be started too frequently.
+    - changed in internal implementation of restart thread in Downloader and in
+      schedule thread in Manager. now both use Timer class from threading
+      module.
+    - minor changes in tutorial.
+
