@@ -1,6 +1,6 @@
 '''
-:Date: 2018-07-31
-:Version: 1.1.0
+:Date: 2019-01-30
+:Version: 1.1.1
 :Authors:
     * Mohammad Alghafli <thebsom@gmail.com>
 
@@ -444,10 +444,20 @@ class Downloader(Emitter):
                 range = 'bytes={}-'.format(self.downloaded)
                 request = requests.get(self.url, headers={'Range': range}, stream=True, timeout=self.timeout)
             
-            request.raise_for_status()
-            if request.status_code == requests.codes.no_content:
-                self._set_size(self.downloaded)
+            completed_response = requests.codes.requested_range_not_satisfiable
+            if request.status_code == completed_response:
+                if 'Content-Range' in request.headers:
+                    content_range = request.headers['Content-Range'].split()
+                    size = content_range[1].split('/')[1]
+                    self._set_size(int(size))
+                
+                if self.downloaded == self.size:
+                    self._set_state('complete')
+                    return
+                else:
+                    request.raise_for_status()
             else:
+                request.raise_for_status()
                 if 'Content-Range' in request.headers:
                     content_range = request.headers['Content-Range'].split()
                     size = content_range[1].split('/')[1]
@@ -462,7 +472,6 @@ class Downloader(Emitter):
                 close_f = True
             else:
                 f = self.path
-                close_f = False
             
             self._set_downloaded(f.tell())
             self._set_state('download')
@@ -512,7 +521,7 @@ class Downloader(Emitter):
                 else:
                     self._set_state('error')
         finally:
-            if 'close_f' in locals() and close_f:
+            if close_f:
                 f.close()
             if self.state == 'error' and self.restart_wait >= 0:
                 self.restart()
