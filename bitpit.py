@@ -1,6 +1,6 @@
 '''
-:Date: 2019-01-30
-:Version: 1.1.1
+:Date: 2019-10-13
+:Version: 1.2.0
 :Authors:
     * Mohammad Alghafli <thebsom@gmail.com>
 
@@ -48,10 +48,12 @@ have a look at the main function for another usage example.
 
 commandline syntax::
 
-    python -m bitpit.py <url>
+    python -m bitpit.py [-r rate_limit] [-m max_running] url [url ...]
     
 args:
-    * url: the url to download.
+    * url: one or more urls to download.
+    * -r rate_limit: total rate limit for all running downloads.
+    * -m max_running: maximum number of running downloads at any single time.
 '''
 
 import requests
@@ -906,7 +908,7 @@ class Manager(Emitter):
     kwargs        `dict`   RW      keyword arguments to added downloads when
                                    creating an instance of `Downloader` using
                                    `self.add()`
-    downloads     `list`   R       downloads that are not completed yet. a list
+    downloads     `list`   R       downloads added to this manager. a list
                                    containing `Downloader` instances.
     ============  =======  ======  =============================================
     
@@ -1230,42 +1232,120 @@ class Manager(Emitter):
         '''
         self.update()
 
-def main(url):
+def main(urls, rate_limit='0', max_running=5):
     '''
-    called when running this module as the main script. downloads the given url
-    until done. on error, restarts after 30 seconds. displays a progress bar
-    indicating how much of the file has been downloaded in addition to other
-    statistics.
+    downloads the given urls until done downloading them all. displays
+    statistics about downloads in the following format:
+    s | speed | downloaded | percent | eta | name
+        
+    in the above format, the first item `s` is the first letter of the state of
+    the download. for example, for complete downloads, that would be the
+    letter `c`. Similarly, `e` would be for error and `f` for fatal error.
+    `speed` is the download speed in human readable format. `downloaded` is the
+    number of downloaded bytes in human readable format. `percent` is percentage
+    downloaded. `eta` is estimated time to complete the download. `name` is the
+    name of the file being downloaded or part of the name if the name is very
+    long.
     
     args:
-        * url: the url to download.
+        * urls: the urls to download.
+        * rate_limit: total rate limit for all downloads
+        * max_running: maximum running downloads at any given time
     '''
-    def on_change(d, old_state=None):
-        bar = d.bar(20)
-        eta = d.eta
-        if eta is not None:
-            eta = datetime.timedelta(seconds=int(eta.total_seconds()))
-        
-        print('\r{0} | {1[0]:.2f} {1[1]} | {2[0]:.2f} {2[1]} | [{3}] {4:2.2f}% | {5}'.format(d.state, d.human_speed, d.human_downloaded, bar, d.percentage, eta).ljust(79), end='', flush=True)
     
-    def wait_func(d):
+    if type(urls) is str:
+        urls = [urls]
+    
+    urls = set(urls)
+    
+    if not rate_limit.isdigit():
+        multiplier = {'k': 2**10, 'm': 2**20}[rate_limit[-1].lower()]
+        rate_limit = float(rate_limit[:-1]) * multiplier
+    
+    rate_limit = int(rate_limit)
+    
+    def update():
+        LINES = min(24, len(m.downloads))
         while True:
-            try:
-                input()
-            except KeyboardInterrupt:
-                d.stop()
+            downloads = [c for c in m.downloads if c.is_alive and
+                c.state != 'complete'][:LINES]
+            downloads += [c for c in m.downloads if not c.is_alive and
+                c.state != 'complete'][:LINES-len(downloads)]
+            downloads += [c for c in m.downloads if not c.is_alive and
+                c.state == 'complete'][:LINES-len(downloads)]
+            
+            print('\033[H', end='')
+            for idx, d in enumerate(downloads):
+                eta = d.eta
+                if eta is not None:
+                    eta = datetime.timedelta(seconds=int(eta.total_seconds()))
+                
+                info = []
+                info.append(d.state[0])
+                info.append('{0[0]:>7.2f} {0[1]:>4}'.format(d.human_speed))
+                info.append('{0[0]:>7.2f} {0[1]:>2}'.format(d.human_downloaded))
+                info.append('{0:>7.2f}%'.format(d.percentage))
+                info.append('{:>8}'.format(str(eta)))
+                info.append(d.path.name[-25:])
+                info = ' | '.join(info).ljust(79)
+                
+                print('{}'.format(info))
+            
+            for c in range(LINES-len(downloads)):
+                print('{}'.format(''.ljust(79)))
+            
+            print('running {:>3} | completed {:>3} / {:>3}'.format(
+                len([c for c in m.downloads if c.is_alive]),
+                len([c for c in m.downloads if c.state == 'complete']),
+                len(m.downloads)))
+            
+            if [c for c in m.downloads if c.state != 'complete']:
+                time.sleep(2)
+            else:
                 break
-            except Exception:
-                pass
     
-    d = Downloader(url, restart_wait=30)
-    d.listen('state-changed', on_change)
-    d.listen('speed-changed', on_change)
-    d.listen('size-changed', on_change)
-    d.start()
+    m = Manager(rate_limit=rate_limit, max_running=max_running)
     
-    threading.Thread(target=wait_func, args=(d,), daemon=True).start()
+    for c in urls:
+        m.add(c)
+    m.start()
+    
+    try:
+        update()
+    finally:
+        m.stop()
+        m.stop_all()
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    import argparse
+    
+    desc = '''
+    downloads the given urls until done downloading them all. displays
+    statistics about downloads in the following format:
+        s | speed | downloaded | percent | eta | name
+        
+    in the above format, the first item `s` is the first letter of the state of
+    the download. for example, for complete downloads, that would be the
+    letter `c`. Similarly, `e` would be for error and `f` for fatal error.
+    `speed` is the download speed in human readable format. `downloaded` is the
+    number of downloaded bytes in human readable format. `percent` is percentage
+    downloaded. `eta` is estimated time to complete the download. `name` is the
+    name of the file being downloaded or part of the name if the name is very
+    long.
+    
+    args:
+        * urls: the urls to download.
+        * rate_limit: total rate limit for all downloads
+        * max_running: maximum running downloads at any given time
+    '''
+    
+    parser = argparse.ArgumentParser(description=main.__doc__)
+    parser.add_argument('urls', nargs='+', help='urls to download.')
+    parser.add_argument('-r', '--rate-limit', type=str, default='0',
+        help='rate limit. can be specified as megabytes or kilobytes (e.g. 0.5m for 0.5 megabytes per second, 100k for 100 kilobytes per second). a value <= 0 means no limit.')
+    parser.add_argument('-m', '--max-running', type=int, default=5,
+        help='maximum number of downloads to be running at one time. a value <= 0 means no limit.')
+    
+    namespace = parser.parse_args()
+    main(**vars(namespace))
 

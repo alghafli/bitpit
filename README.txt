@@ -1,5 +1,5 @@
-:Date: 2019-01-30
-:Version: 1.1.1
+:Date: 2019-10-13
+:Version: 1.2.0
 :Authors:
     * Mohammad Alghafli <thebsom@gmail.com>
 
@@ -47,10 +47,12 @@ have a look at the main function for another usage example.
 
 commandline syntax::
 
-    python -m bitpit.py <url>
+    python -m bitpit.py [-r rate_limit] [-m max_running] url [url ...]
     
 args:
-    * url: the url to download.
+    * url: one or more urls to download.
+    * -r rate_limit: total rate limit for all running downloads.
+    * -m max_running: maximum number of running downloads at any single time.
 
 --------
 Tutorial

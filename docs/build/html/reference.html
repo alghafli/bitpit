@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>bitpit Reference &mdash; bitpit 1.1.1 documentation</title>
+  <title>bitpit Reference &mdash; bitpit 1.2.0 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="bitpit 1.1.1 documentation" href="index.html"/>
+    <link rel="top" title="bitpit 1.2.0 documentation" href="index.html"/>
         <link rel="prev" title="Elegant Output" href="elegant-output.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.1.1
+                1.2.0
               </div>
             
           
@@ -168,10 +168,10 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body"><p class="first">2019-01-30</p>
+<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body"><p class="first">2019-10-13</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.1.1</p>
+<tr class="field-even field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.2.0</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Authors:</th><td class="field-body"><ul class="first last simple">
@@ -223,13 +223,15 @@ is a typical usage example:</p>
 <p>This module can also be run as a main python script to download a file. You can
 have a look at the main function for another usage example.</p>
 <p>commandline syntax:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">bitpit</span><span class="o">.</span><span class="n">py</span> <span class="o">&lt;</span><span class="n">url</span><span class="o">&gt;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">bitpit</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">rate_limit</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">max_running</span><span class="p">]</span> <span class="n">url</span> <span class="p">[</span><span class="n">url</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <dl class="docutils">
 <dt>args:</dt>
 <dd><ul class="first last simple">
-<li>url: the url to download.</li>
+<li>url: one or more urls to download.</li>
+<li>-r rate_limit: total rate limit for all running downloads.</li>
+<li>-m max_running: maximum number of running downloads at any single time.</li>
 </ul>
 </dd>
 </dl>
@@ -754,7 +756,7 @@ creating an instance of <cite>Downloader</cite> using
 <tr class="row-even"><td>downloads</td>
 <td><cite>list</cite></td>
 <td>R</td>
-<td>downloads that are not completed yet. a list
+<td>downloads added to this manager. a list
 containing <cite>Downloader</cite> instances.</td>
 </tr>
 </tbody>
@@ -877,15 +879,24 @@ manager properties are changed. you do not need to call it.</p>
 
 <dl class="function">
 <dt id="bitpit.main">
-<code class="descclassname">bitpit.</code><code class="descname">main</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.main" title="Permalink to this definition">¶</a></dt>
-<dd><p>called when running this module as the main script. downloads the given url
-until done. on error, restarts after 30 seconds. displays a progress bar
-indicating how much of the file has been downloaded in addition to other
-statistics.</p>
+<code class="descclassname">bitpit.</code><code class="descname">main</code><span class="sig-paren">(</span><em>urls</em>, <em>rate_limit='0'</em>, <em>max_running=5</em><span class="sig-paren">)</span><a class="headerlink" href="#bitpit.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>downloads the given urls until done downloading them all. displays
+statistics about downloads in the following format:
+s | speed | downloaded | percent | eta | name</p>
+<p>in the above format, the first item <cite>s</cite> is the first letter of the state of
+the download. for example, for complete downloads, that would be the
+letter <cite>c</cite>. Similarly, <cite>e</cite> would be for error and <cite>f</cite> for fatal error.
+<cite>speed</cite> is the download speed in human readable format. <cite>downloaded</cite> is the
+number of downloaded bytes in human readable format. <cite>percent</cite> is percentage
+downloaded. <cite>eta</cite> is estimated time to complete the download. <cite>name</cite> is the
+name of the file being downloaded or part of the name if the name is very
+long.</p>
 <dl class="docutils">
 <dt>args:</dt>
 <dd><ul class="first last simple">
-<li>url: the url to download.</li>
+<li>urls: the urls to download.</li>
+<li>rate_limit: total rate limit for all downloads</li>
+<li>max_running: maximum running downloads at any given time</li>
 </ul>
 </dd>
 </dl>
@@ -935,7 +946,7 @@ statistics.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.1.1',
+            VERSION:'1.2.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

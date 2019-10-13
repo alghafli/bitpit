@@ -47,4 +47,6 @@
       schedule thread in Manager. now both use Timer class from threading
       module.
     - minor changes in tutorial.
+1.2.0:
+    - modified main script to accept multiple urls and accept -r and -m options.
 
